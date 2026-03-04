@@ -46,7 +46,14 @@ class _ChemistShopScreenState extends ConsumerState<ChemistShopScreen> {
   Widget build(BuildContext context) {
     final _ = ref.watch(chemistShopNotifierProvider);
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go(AppRouter.home);
+        }
+      },
+      child: Scaffold(
       appBar: const MRAppBar(
         showBack: false,
         showActions: false,
@@ -140,6 +147,7 @@ class _ChemistShopScreenState extends ConsumerState<ChemistShopScreen> {
         ),
       ),
       bottomNavigationBar: const MRBottomNavBar(currentIndex: 3),
+      ),
     );
   }
 

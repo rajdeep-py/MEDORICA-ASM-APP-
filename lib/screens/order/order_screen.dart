@@ -28,7 +28,14 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     final allOrders = ref.watch(orderNotifierProvider);
     final filteredOrders = _filterOrders(allOrders);
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go(AppRouter.home);
+        }
+      },
+      child: Scaffold(
       appBar: const MRAppBar(
         titleText: 'MR Orders',
         subtitleText: 'Track your orders',
@@ -109,6 +116,7 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
         ),
       ),
       bottomNavigationBar: const MRBottomNavBar(currentIndex: 2),
+      ),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:asm_app/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,7 +45,14 @@ class _DistributorScreenState extends ConsumerState<DistributorScreen> {
   Widget build(BuildContext context) {
     final _ = ref.watch(distributorNotifierProvider);
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go(AppRouter.home);
+        }
+      },
+      child: Scaffold(
       appBar: const MRAppBar(
         showBack: false,
         showActions: false,
@@ -138,6 +146,7 @@ class _DistributorScreenState extends ConsumerState<DistributorScreen> {
         ),
       ),
       bottomNavigationBar: const MRBottomNavBar(currentIndex: 4),
+      ),
     );
   }
 
