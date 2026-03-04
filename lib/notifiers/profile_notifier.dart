@@ -54,4 +54,9 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
   void updateProfile(ASM updatedProfile) {
     state = state.copyWith(profile: updatedProfile, error: null);
   }
+
+  /// Clear profile
+  void clearProfile() {
+    state = ProfileState();
+  }
 }

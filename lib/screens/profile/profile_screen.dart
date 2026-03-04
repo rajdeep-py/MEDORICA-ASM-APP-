@@ -40,6 +40,11 @@ class ProfileScreen extends ConsumerWidget {
                         const SnackBar(content: Text('Contact Support feature coming soon')),
                       );
                     },
+                    onSalarySlip: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Salary Slip download feature coming soon')),
+                      );
+                    },
                     onNotifications: () => context.push('/notifications'),
                   ),
                   const SizedBox(height: 20),
