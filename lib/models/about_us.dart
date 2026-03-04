@@ -33,20 +33,20 @@ class AboutUs {
 
   factory AboutUs.fromJson(Map<String, dynamic> json) {
     return AboutUs(
-      companyName: json['companyName'] ?? '',
-      description: json['description'] ?? '',
-      directorName: json['directorName'] ?? '',
-      directorMessage: json['directorMessage'] ?? '',
-      directorPhotoUrl: json['directorPhotoUrl'] ?? '',
-      phone: json['phone'] ?? '',
+      companyName: json['company_name'] ?? 'Medorica Pharma Pvt. Ltd.',
+      description: json['company_about'] ?? '',
+      directorName: json['director_name'] ?? 'Director',
+      directorMessage: json['director_message'] ?? '',
+      directorPhotoUrl: json['director_photo_url'] ?? 'assets/logo/logo.png',
+      phone: json['phn_no'] ?? '',
       email: json['email'] ?? '',
       address: json['address'] ?? '',
-      mapUrl: json['mapUrl'] ?? '',
+      mapUrl: json['office_address'] ?? json['address'] ?? '',
       website: json['website'] ?? '',
-      instagram: json['instagram'] ?? '',
-      facebook: json['facebook'] ?? '',
-      youtube: json['youtube'] ?? '',
-      linkedin: json['linkedin'] ?? '',
+      instagram: json['instagram_link'] ?? '',
+      facebook: json['facebook_link'] ?? '',
+      youtube: json['youtube_link'] ?? '',
+      linkedin: json['linkedin_link'] ?? '',
     );
   }
 
