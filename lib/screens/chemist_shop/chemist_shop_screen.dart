@@ -114,21 +114,7 @@ class _ChemistShopScreenState extends ConsumerState<ChemistShopScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.push('/add-edit-chemist-shop');
-        },
-        elevation: 4,
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Iconsax.add, color: AppColors.white, size: 24),
-        label: Text(
-          'Add Shop',
-          style: AppTypography.body.copyWith(
-            color: AppColors.white,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
+      
       bottomNavigationBar: const MRBottomNavBar(currentIndex: 3),
     );
   }
