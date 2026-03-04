@@ -4,6 +4,7 @@ class Team {
   final String headquarter;
   final String territory;
   final String description;
+  final String? groupLink;
   final List<String> members;
 
   Team({
@@ -12,6 +13,7 @@ class Team {
     required this.headquarter,
     required this.territory,
     required this.description,
+    this.groupLink,
     this.members = const [],
   });
 
@@ -21,6 +23,7 @@ class Team {
     String? headquarter,
     String? territory,
     String? description,
+    String? groupLink,
     List<String>? members,
   }) {
     return Team(
@@ -29,6 +32,7 @@ class Team {
       headquarter: headquarter ?? this.headquarter,
       territory: territory ?? this.territory,
       description: description ?? this.description,
+      groupLink: groupLink ?? this.groupLink,
       members: members ?? this.members,
     );
   }

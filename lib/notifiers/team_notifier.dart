@@ -41,6 +41,7 @@ class TeamNotifier extends StateNotifier<TeamState> {
         headquarter: 'Mumbai',
         territory: 'Western Region',
         description: 'Responsible for pharmaceutical sales in Western India including Gujarat, Maharashtra, and Goa.',
+        groupLink: 'https://chat.whatsapp.com/sales-team-alpha-2024',
         members: ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Williams'],
       ),
       Team(
@@ -49,6 +50,7 @@ class TeamNotifier extends StateNotifier<TeamState> {
         headquarter: 'Delhi',
         territory: 'Northern Region',
         description: 'Manages sales operations across North India covering Delhi, Punjab, Haryana, and Himachal Pradesh.',
+        groupLink: 'https://chat.whatsapp.com/sales-team-beta-2024',
         members: ['Alex Kumar', 'Priya Singh', 'Rajesh Patel'],
       ),
       Team(
@@ -57,6 +59,7 @@ class TeamNotifier extends StateNotifier<TeamState> {
         headquarter: 'Bangalore',
         territory: 'Southern Region',
         description: 'Handles distribution and sales in South India including Karnataka, Tamil Nadu, Telangana, and Andhra Pradesh.',
+        groupLink: 'https://chat.whatsapp.com/sales-team-gamma-2024',
         members: ['Amit Sharma', 'Neha Reddy', 'Vikram Desai', 'Anjali Nair', 'Deepak Kumar'],
       ),
     ];

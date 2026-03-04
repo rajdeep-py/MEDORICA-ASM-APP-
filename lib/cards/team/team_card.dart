@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/team.dart';
 import '../../theme/app_theme.dart';
 import 'package:iconsax/iconsax.dart';
+import 'group_link_bottomsheet.dart';
 
 class TeamCard extends StatelessWidget {
   final Team team;
@@ -144,9 +145,17 @@ class TeamCard extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Group link copied for ${team.name}')),
-                          );
+                          if (team.groupLink != null && team.groupLink!.isNotEmpty) {
+                            GroupLinkBottomSheet.show(
+                              context,
+                              team.name,
+                              team.groupLink!,
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('No group link available for ${team.name}')),
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryLight,

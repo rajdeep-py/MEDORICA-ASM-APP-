@@ -16,7 +16,7 @@ class MyTeamScreen extends ConsumerWidget {
     return Scaffold(
       appBar: MRAppBar(
         showBack: false,
-        showActions: true,
+        showActions: false,
         titleText: 'My Team',
         subtitleText: 'Manage your sales teams',
       ),
