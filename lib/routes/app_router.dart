@@ -16,6 +16,7 @@ import '../screens/chemist_shop/chemist_shop_screen.dart';
 import '../screens/chemist_shop/chemist_shop_detail_screen.dart';
 import '../screens/chemist_shop/add_edit_chemist_shop_screen.dart';
 import '../screens/order/order_screen.dart';
+import '../screens/order/create_new_order_screen.dart';
 import '../screens/about_us/about_us_screen.dart';
 import '../models/team_member.dart';
 import '../models/distributor.dart';
@@ -36,6 +37,7 @@ class AppRouter {
   static const String chemistShopDetail = '/chemist-shop-detail/:shopId';
   static const String addEditChemistShop = '/add-edit-chemist-shop';
   static const String orders = '/mr-orders';
+  static const String createOrder = '/create-order';
   static const String notifications = '/notifications';
   static const String profile = '/profile';
   static const String aboutUs = '/about-us';
@@ -136,6 +138,10 @@ class AppRouter {
         GoRoute(
           path: AppRouter.orders,
           builder: (context, state) => const OrderScreen(),
+        ),
+        GoRoute(
+          path: AppRouter.createOrder,
+          builder: (context, state) => const CreateNewOrderScreen(),
         ),
         GoRoute(
           path: AppRouter.notifications,
