@@ -15,6 +15,7 @@ import '../screens/distributor/add_edit_distributor_screen.dart';
 import '../screens/chemist_shop/chemist_shop_screen.dart';
 import '../screens/chemist_shop/chemist_shop_detail_screen.dart';
 import '../screens/order/order_screen.dart';
+import '../screens/about_us/about_us_screen.dart';
 import '../models/team_member.dart';
 import '../models/distributor.dart';
 import '../models/chemist_shop.dart';
@@ -35,6 +36,7 @@ class AppRouter {
   static const String orders = '/mr-orders';
   static const String notifications = '/notifications';
   static const String profile = '/profile';
+  static const String aboutUs = '/about-us';
 
   static GoRouter router(WidgetRef ref) {
     return GoRouter(
@@ -126,6 +128,10 @@ class AppRouter {
         GoRoute(
           path: AppRouter.profile,
           builder: (context, state) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: AppRouter.aboutUs,
+          builder: (context, state) => const AboutUsScreen(),
         ),
       ],
     );

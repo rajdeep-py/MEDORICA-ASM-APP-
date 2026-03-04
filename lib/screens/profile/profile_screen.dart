@@ -4,6 +4,7 @@ import '../../cards/profile/profile_header_card.dart';
 import '../../cards/profile/profile_options_card.dart';
 import '../../widgets/app_bar.dart';
 import '../../providers/profile_provider.dart';
+import '../../routes/app_router.dart';
 import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -34,7 +35,7 @@ class ProfileScreen extends ConsumerWidget {
                         const SnackBar(content: Text('Update Profile feature coming soon')),
                       );
                     },
-                    onAboutUs: () => context.push('/about-us'),
+                    onAboutUs: () => context.push(AppRouter.aboutUs),
                     onContactSupport: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Contact Support feature coming soon')),
@@ -45,7 +46,7 @@ class ProfileScreen extends ConsumerWidget {
                         const SnackBar(content: Text('Salary Slip download feature coming soon')),
                       );
                     },
-                    onNotifications: () => context.push('/notifications'),
+                    onNotifications: () => context.push(AppRouter.notifications),
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -58,7 +59,7 @@ class ProfileScreen extends ConsumerWidget {
                   const Text('No profile data available'),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => context.go('/home'),
+                    onPressed: () => context.go(AppRouter.home),
                     child: const Text('Go to Home'),
                   ),
                 ],
