@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/team.dart';
 import '../../theme/app_theme.dart';
 import 'package:iconsax/iconsax.dart';
@@ -124,8 +125,9 @@ class TeamCard extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('View members of ${team.name}')),
+                          context.push(
+                            '/team-members/${team.id}',
+                            extra: team.name,
                           );
                         },
                         style: ElevatedButton.styleFrom(
