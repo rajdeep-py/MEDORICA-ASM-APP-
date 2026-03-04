@@ -32,6 +32,33 @@ class MRAttendanceCard extends ConsumerWidget {
     }
   }
 
+  Widget _buildAttendanceStep({required IconData icon, required String title, required String description}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AppTypography.body.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Text(description, style: AppTypography.bodySmall.copyWith(color: AppColors.quaternary)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final attendance = ref.watch(todaysAttendanceProvider);
@@ -65,46 +92,78 @@ class MRAttendanceCard extends ConsumerWidget {
                         context: context,
                         builder: (context) => Dialog(
                           backgroundColor: Colors.transparent,
+                          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Container(
                             decoration: BoxDecoration(
                               color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(AppBorderRadius.lg),
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withAlpha(15),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
                             ),
-                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            padding: const EdgeInsets.all(28),
+                            constraints: const BoxConstraints(maxWidth: 400),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(AppSpacing.sm),
-                                      decoration: AppCardStyles.minimalCard(backgroundColor: AppColors.primaryLight),
-                                      child: Icon(Icons.info_outline, color: AppColors.primary),
-                                    ),
-                                    const SizedBox(width: AppSpacing.md),
-                                    Expanded(child: Text('How attendance works', style: AppTypography.h3.copyWith(color: AppColors.primary))),
-                                  ],
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryLight,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(Icons.camera_alt_rounded, color: AppColors.primary, size: 24),
                                 ),
-                                const SizedBox(height: AppSpacing.md),
-                                Text('• A selfie is taken using your front camera.', style: AppTypography.body.copyWith(color: AppColors.quaternary)),
-                                const SizedBox(height: AppSpacing.sm),
-                                Text('• Each selfie is saved with a timestamp and attached to your attendance record.', style: AppTypography.bodySmall.copyWith(color: AppColors.quaternary)),
-                                const SizedBox(height: AppSpacing.sm),
-                                Text('• Photos are used only for verification and may be retained according to company policy.', style: AppTypography.bodySmall.copyWith(color: AppColors.quaternary)),
-                                const SizedBox(height: AppSpacing.sm),
-                                Text('• You must check out with a selfie to complete the day\'s record.', style: AppTypography.bodySmall.copyWith(color: AppColors.quaternary)),
-                                const SizedBox(height: AppSpacing.lg),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
-                                      style: TextButton.styleFrom(foregroundColor: AppColors.primary),
-                                      child: const Text('Close'),
+                                const SizedBox(height: 20),
+                                Text('How Attendance Works', style: AppTypography.h2.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Secure selfie-based attendance system',
+                                  style: AppTypography.body.copyWith(color: AppColors.quaternary),
+                                ),
+                                const SizedBox(height: 24),
+                                _buildAttendanceStep(
+                                  icon: Icons.camera_rounded,
+                                  title: 'Capture Selfie',
+                                  description: 'Take a photo using your front camera',
+                                ),
+                                const SizedBox(height: 16),
+                                _buildAttendanceStep(
+                                  icon: Icons.schedule_rounded,
+                                  title: 'Timestamp Recorded',
+                                  description: 'Each selfie is saved with exact time',
+                                ),
+                                const SizedBox(height: 16),
+                                _buildAttendanceStep(
+                                  icon: Icons.security_rounded,
+                                  title: 'Verification',
+                                  description: 'Used for security and company policy compliance',
+                                ),
+                                const SizedBox(height: 16),
+                                _buildAttendanceStep(
+                                  icon: Icons.logout_rounded,
+                                  title: 'Complete Day',
+                                  description: 'Check out with a selfie to finish your record',
+                                ),
+                                const SizedBox(height: 28),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: AppColors.white,
+                                      elevation: 0,
+                                      minimumSize: const Size(double.infinity, 48),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     ),
-                                  ],
+                                    child: const Text('Got it', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                  ),
                                 )
                               ],
                             ),
