@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../widgets/app_bar.dart';
 import '../../cards/team_member/team_member_card.dart';
 import '../../providers/team_member_provider.dart';
-import '../../widgets/bottom_nav_bar.dart';
 
 class TeamMembersScreen extends ConsumerWidget {
   final String teamId;
@@ -53,7 +52,6 @@ class TeamMembersScreen extends ConsumerWidget {
                     );
                   },
                 ),
-      bottomNavigationBar: const MRBottomNavBar(currentIndex: 1),
     );
   }
 }
