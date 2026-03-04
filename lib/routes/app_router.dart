@@ -18,9 +18,15 @@ import '../screens/chemist_shop/add_edit_chemist_shop_screen.dart';
 import '../screens/order/order_screen.dart';
 import '../screens/order/create_new_order_screen.dart';
 import '../screens/about_us/about_us_screen.dart';
+import '../screens/doctor/doctor_screen.dart';
+import '../screens/doctor/doctor_detail_screen.dart';
+import '../screens/doctor/add_edit_doctor_screen.dart';
+import '../screens/appointment/my_appointment_screen.dart';
+import '../screens/appointment/schedule_edit_appointment_screen.dart';
 import '../models/team_member.dart';
 import '../models/distributor.dart';
-import '../models/chemist_shop.dart';
+import '../models/chemist_shop.dart' hide Doctor;
+import '../models/doctor.dart';
 
 class AppRouter {
   // Route paths
@@ -41,6 +47,13 @@ class AppRouter {
   static const String notifications = '/notifications';
   static const String profile = '/profile';
   static const String aboutUs = '/about-us';
+  static const String doctors = '/asm/doctor';
+  static const String addDoctor = '/asm/doctor/add';
+  static const String editDoctor = '/asm/doctor/edit/:doctorId';
+  static const String doctorDetail = '/asm/doctor/:doctorId';
+  static const String appointments = '/asm/appointments';
+  static const String scheduleAppointment = '/asm/appointments/schedule';
+  static const String editAppointment = '/asm/appointments/edit/:appointmentId';
 
   static GoRouter router(WidgetRef ref) {
     return GoRouter(
@@ -154,6 +167,46 @@ class AppRouter {
         GoRoute(
           path: AppRouter.aboutUs,
           builder: (context, state) => const AboutUsScreen(),
+        ),
+        GoRoute(
+          path: AppRouter.doctors,
+          builder: (context, state) => const MyDoctorScreen(),
+        ),
+        GoRoute(
+          path: AppRouter.addDoctor,
+          builder: (context, state) => const AddEditDoctorScreen(),
+        ),
+        GoRoute(
+          path: AppRouter.editDoctor,
+          builder: (context, state) {
+            final doctor = state.extra as Doctor?;
+            return AddEditDoctorScreen(doctor: doctor);
+          },
+        ),
+        GoRoute(
+          path: AppRouter.doctorDetail,
+          builder: (context, state) {
+            final doctorId = state.pathParameters['doctorId'] ?? '';
+            return DoctorDetailScreen(doctorId: doctorId);
+          },
+        ),
+        GoRoute(
+          path: AppRouter.appointments,
+          builder: (context, state) => const MyAppointmentScreen(),
+        ),
+        GoRoute(
+          path: AppRouter.scheduleAppointment,
+          builder: (context, state) {
+            final doctorId = state.uri.queryParameters['doctorId'];
+            return ScheduleEditAppointmentScreen(initialDoctorId: doctorId);
+          },
+        ),
+        GoRoute(
+          path: AppRouter.editAppointment,
+          builder: (context, state) {
+            final appointmentId = state.pathParameters['appointmentId'];
+            return ScheduleEditAppointmentScreen(appointmentId: appointmentId);
+          },
         ),
       ],
     );

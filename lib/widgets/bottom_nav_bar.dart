@@ -51,6 +51,12 @@ class _MRBottomNavBarState extends State<MRBottomNavBar> {
       case 4:
         context.go(AppRouter.distributors);
         break;
+      case 5:
+        context.go(AppRouter.doctors);
+        break;
+      case 6:
+        context.go(AppRouter.appointments);
+        break;
     }
   }
 
@@ -80,6 +86,16 @@ class _MRBottomNavBarState extends State<MRBottomNavBar> {
         label: 'Distributors',
         icon: Iconsax.truck,
         filledIcon: Iconsax.truck,
+      ),
+      _NavItem(
+        label: 'Doctors',
+        icon: FontAwesomeIcons.userDoctor,
+        filledIcon: FontAwesomeIcons.userDoctor,
+      ),
+      _NavItem(
+        label: 'Appointments',
+        icon: Iconsax.calendar,
+        filledIcon: Iconsax.calendar_1,
       ),
     ];
 
