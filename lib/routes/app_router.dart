@@ -14,6 +14,7 @@ import '../screens/distributor/distributor_detail_screen.dart';
 import '../screens/distributor/add_edit_distributor_screen.dart';
 import '../screens/chemist_shop/chemist_shop_screen.dart';
 import '../screens/chemist_shop/chemist_shop_detail_screen.dart';
+import '../screens/chemist_shop/add_edit_chemist_shop_screen.dart';
 import '../screens/order/order_screen.dart';
 import '../screens/about_us/about_us_screen.dart';
 import '../models/team_member.dart';
@@ -33,6 +34,7 @@ class AppRouter {
   static const String addEditDistributor = '/add-edit-distributor';
   static const String chemistShops = '/chemist-shops';
   static const String chemistShopDetail = '/chemist-shop-detail/:shopId';
+  static const String addEditChemistShop = '/add-edit-chemist-shop';
   static const String orders = '/mr-orders';
   static const String notifications = '/notifications';
   static const String profile = '/profile';
@@ -115,6 +117,20 @@ class AppRouter {
                 ? ChemistShopDetailScreen(shop: shop)
                 : const Scaffold(
                     body: Center(child: Text('Shop not found')));
+          },
+        ),
+        GoRoute(
+          path: AppRouter.addEditChemistShop,
+          builder: (context, state) {
+            final shop = state.extra as ChemistShop?;
+            return AddEditChemistShopScreen(shop: shop);
+          },
+        ),
+        GoRoute(
+          path: '/add-edit-chemist-shop/:shopId',
+          builder: (context, state) {
+            final shop = state.extra as ChemistShop?;
+            return AddEditChemistShopScreen(shop: shop);
           },
         ),
         GoRoute(

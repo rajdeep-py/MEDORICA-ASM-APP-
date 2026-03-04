@@ -5,6 +5,7 @@ import '../../cards/chemist_shop/chemist_shop_card.dart';
 import '../../cards/chemist_shop/chemist_shop_search_filter_card.dart';
 import '../../models/chemist_shop.dart';
 import '../../providers/chemist_shop_provider.dart';
+import '../../routes/app_router.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/bottom_nav_bar.dart';
@@ -108,14 +109,63 @@ class _ChemistShopScreenState extends ConsumerState<ChemistShopScreen> {
                             extra: shop,
                           );
                         },
+                        onEdit: () {
+                          context.push(
+                            '/add-edit-chemist-shop/${shop.id}',
+                            extra: shop,
+                          );
+                        },
+                        onDelete: () {
+                          _showDeleteConfirmation(shop);
+                        },
                       );
                     },
                   ),
           ),
         ],
       ),
-      
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          context.push(AppRouter.addEditChemistShop);
+        },
+        elevation: 4,
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Iconsax.add, color: AppColors.white, size: 24),
+        label: Text(
+          'Add Shop',
+          style: AppTypography.body.copyWith(
+            color: AppColors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
       bottomNavigationBar: const MRBottomNavBar(currentIndex: 3),
+    );
+  }
+
+  void _showDeleteConfirmation(ChemistShop shop) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Chemist Shop'),
+        content: Text('Are you sure you want to delete ${shop.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              ref
+                  .read(chemistShopNotifierProvider.notifier)
+                  .deleteShop(shop.id);
+              Navigator.pop(context);
+              setState(() => _updateFilteredList());
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 }
