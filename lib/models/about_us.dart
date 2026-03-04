@@ -8,6 +8,11 @@ class AboutUs {
   final String email;
   final String address;
   final String mapUrl;
+  final String website;
+  final String instagram;
+  final String facebook;
+  final String youtube;
+  final String linkedin;
 
   AboutUs({
     required this.companyName,
@@ -19,6 +24,11 @@ class AboutUs {
     required this.email,
     required this.address,
     required this.mapUrl,
+    required this.website,
+    required this.instagram,
+    required this.facebook,
+    required this.youtube,
+    required this.linkedin,
   });
 
   factory AboutUs.fromJson(Map<String, dynamic> json) {
@@ -32,6 +42,11 @@ class AboutUs {
       email: json['email'] ?? '',
       address: json['address'] ?? '',
       mapUrl: json['mapUrl'] ?? '',
+      website: json['website'] ?? '',
+      instagram: json['instagram'] ?? '',
+      facebook: json['facebook'] ?? '',
+      youtube: json['youtube'] ?? '',
+      linkedin: json['linkedin'] ?? '',
     );
   }
 
@@ -46,6 +61,11 @@ class AboutUs {
       'email': email,
       'address': address,
       'mapUrl': mapUrl,
+      'website': website,
+      'instagram': instagram,
+      'facebook': facebook,
+      'youtube': youtube,
+      'linkedin': linkedin,
     };
   }
 }

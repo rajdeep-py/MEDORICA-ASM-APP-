@@ -8,6 +8,11 @@ class AboutUsContactUsCard extends StatelessWidget {
   final String email;
   final String address;
   final String mapUrl;
+  final String website;
+  final String instagram;
+  final String facebook;
+  final String youtube;
+  final String linkedin;
 
   const AboutUsContactUsCard({
     super.key,
@@ -15,6 +20,11 @@ class AboutUsContactUsCard extends StatelessWidget {
     required this.email,
     required this.address,
     required this.mapUrl,
+    required this.website,
+    required this.instagram,
+    required this.facebook,
+    required this.youtube,
+    required this.linkedin,
   });
 
   Future<void> _launchUrl(String url) async {
@@ -89,6 +99,59 @@ class AboutUsContactUsCard extends StatelessWidget {
               value: address,
               onTap: () => _launchUrl(mapUrl),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            // Social Media Links
+            const Divider(),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Follow Us',
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.quaternary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildSocialButton(
+                  icon: Iconsax.global,
+                  label: 'Website',
+                  onTap: () => _launchUrl(website),
+                  color: const Color(0xFF4285F4),
+                ),
+                _buildSocialButton(
+                  icon: Iconsax.instagram,
+                  label: 'Instagram',
+                  onTap: () => _launchUrl(instagram),
+                  color: const Color(0xFFE4405F),
+                ),
+                _buildSocialButton(
+                  icon: Iconsax.video,
+                  label: 'YouTube',
+                  onTap: () => _launchUrl(youtube),
+                  color: const Color(0xFFFF0000),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildSocialButton(
+                  icon: Iconsax.message_2,
+                  label: 'Facebook',
+                  onTap: () => _launchUrl(facebook),
+                  color: const Color(0xFF1877F2),
+                ),
+                _buildSocialButton(
+                  icon: Iconsax.link,
+                  label: 'LinkedIn',
+                  onTap: () => _launchUrl(linkedin),
+                  color: const Color(0xFF0A66C2),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -150,6 +213,48 @@ class AboutUsContactUsCard extends StatelessWidget {
               size: 20,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required Color color,
+  }) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppBorderRadius.md),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppSpacing.md,
+            horizontal: AppSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppBorderRadius.md),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                label,
+                style: AppTypography.caption.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

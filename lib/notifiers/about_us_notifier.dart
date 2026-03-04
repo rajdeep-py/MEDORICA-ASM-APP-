@@ -47,6 +47,11 @@ class AboutUsNotifier extends ChangeNotifier {
         email: 'info@medoricapharma.com',
         address: '123, Pharma Complex, Industrial Area, Sector 25, Pune, Maharashtra 411001, India',
         mapUrl: 'https://maps.google.com/?q=Pune+Maharashtra+India',
+        website: 'https://www.medoricapharma.com',
+        instagram: 'https://www.instagram.com/medoricapharma',
+        facebook: 'https://www.facebook.com/medoricapharma',
+        youtube: 'https://www.youtube.com/@medoricapharma',
+        linkedin: 'https://www.linkedin.com/company/medoricapharma',
       );
       _error = null;
     } catch (e) {
