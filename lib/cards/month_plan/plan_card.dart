@@ -57,7 +57,7 @@ class PlanCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          ...entry.steps.map((s) => _stepTile(s)).toList(),
+          ...entry.steps.map((s) => _stepTile(s)),
         ],
       ),
     );

@@ -17,7 +17,7 @@ class MonthPlanCard extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.white.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: AppColors.white.withAlpha(120), borderRadius: BorderRadius.circular(12)),
                 child: const Icon(Icons.calendar_today, color: AppColors.white),
               ),
               const SizedBox(width: AppSpacing.md),

@@ -235,9 +235,9 @@ class AboutUsContactUsCard extends StatelessWidget {
             horizontal: AppSpacing.xs,
           ),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withAlpha(10),
             borderRadius: BorderRadius.circular(AppBorderRadius.md),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withAlpha(30)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

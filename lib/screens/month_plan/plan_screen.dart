@@ -37,7 +37,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: 'Select Team Member'),
               items: members.map((m) => DropdownMenuItem(value: m.id, child: Text(m.name))).toList(),
-              value: selectedId,
+              initialValue: selectedId,
               onChanged: (v) => setState(() => _selectedMemberId = v),
             ),
             const SizedBox(height: AppSpacing.md),

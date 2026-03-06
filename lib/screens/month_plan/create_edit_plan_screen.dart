@@ -65,7 +65,7 @@ class _CreateEditPlanScreenState extends ConsumerState<CreateEditPlanScreen> {
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: 'Assign To'),
               items: members.map((m) => DropdownMenuItem(value: m.id, child: Text(m.name))).toList(),
-              value: _selectedMemberId,
+              initialValue: _selectedMemberId,
               onChanged: (v) => setState(() => _selectedMemberId = v),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -73,7 +73,7 @@ class _CreateEditPlanScreenState extends ConsumerState<CreateEditPlanScreen> {
             const SizedBox(height: AppSpacing.sm),
             _buildStepForm(),
             const SizedBox(height: AppSpacing.md),
-            ..._steps.map((s) => ListTile(title: Text(s.title), subtitle: Text('${s.time} • ${s.description}'))).toList(),
+            ..._steps.map((s) => ListTile(title: Text(s.title), subtitle: Text('${s.time} • ${s.description}'))),
             const SizedBox(height: AppSpacing.lg),
             ElevatedButton(
               onPressed: _savePlan,
