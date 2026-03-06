@@ -27,7 +27,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
         : [];
 
     return Scaffold(
-      appBar: const MRAppBar(showBack: true, titleText: 'Monthly Plan', subtitleText: 'View plans by team member'),
+      appBar: const MRAppBar(showBack: true, showActions: false, titleText: 'Monthly Plan', subtitleText: 'View plans by team member'),
       backgroundColor: AppColors.surface,
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),

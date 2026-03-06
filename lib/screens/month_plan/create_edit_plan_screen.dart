@@ -8,7 +8,8 @@ import '../../providers/month_plan_provider.dart';
 import '../../models/month_plan.dart';
 
 class CreateEditPlanScreen extends ConsumerStatefulWidget {
-  const CreateEditPlanScreen({super.key});
+  final MonthPlanEntry? initialEntry;
+  const CreateEditPlanScreen({super.key, this.initialEntry});
 
   @override
   ConsumerState<CreateEditPlanScreen> createState() => _CreateEditPlanScreenState();
@@ -22,11 +23,24 @@ class _CreateEditPlanScreenState extends ConsumerState<CreateEditPlanScreen> {
   final _descCtr = TextEditingController();
   final _timeCtr = TextEditingController();
 
+  bool get isEditing => widget.initialEntry != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (isEditing) {
+      final e = widget.initialEntry!;
+      _selectedDate = e.date;
+      _selectedMemberId = e.memberId;
+      _steps.addAll(e.steps);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final members = ref.watch(allTeamMembersProvider);
     return Scaffold(
-      appBar: const MRAppBar(showBack: true, titleText: 'Create Plan', subtitleText: 'Schedule a day plan'),
+      appBar: const MRAppBar(showBack: true, showActions: false, titleText: 'Create Plan', subtitleText: 'Schedule a day plan'),
       backgroundColor: AppColors.surface,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -120,7 +134,14 @@ class _CreateEditPlanScreenState extends ConsumerState<CreateEditPlanScreen> {
   void _savePlan() {
     if (_selectedMemberId == null) return;
     if (_steps.isEmpty) return;
-    ref.read(monthPlanNotifierProvider.notifier).createPlanForMember(_selectedMemberId!, _selectedDate, _steps);
+    final notifier = ref.read(monthPlanNotifierProvider.notifier);
+    if (isEditing) {
+      final existing = widget.initialEntry!;
+      final updated = existing.copyWith(date: _selectedDate, memberId: _selectedMemberId, steps: List.from(_steps));
+      notifier.updateEntry(updated);
+    } else {
+      notifier.createPlanForMember(_selectedMemberId!, _selectedDate, _steps);
+    }
     context.pop();
   }
 }

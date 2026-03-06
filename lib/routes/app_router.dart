@@ -30,6 +30,7 @@ import '../models/chemist_shop.dart' hide Doctor;
 import '../models/doctor.dart';
 import '../screens/month_plan/plan_screen.dart';
 import '../screens/month_plan/create_edit_plan_screen.dart';
+import '../models/month_plan.dart';
 
 class AppRouter {
   // Route paths
@@ -224,7 +225,10 @@ class AppRouter {
         ),
         GoRoute(
           path: AppRouter.createMonthPlan,
-          builder: (context, state) => const CreateEditPlanScreen(),
+          builder: (context, state) {
+            final entry = state.extra as MonthPlanEntry?;
+            return CreateEditPlanScreen(initialEntry: entry);
+          },
         ),
       ],
     );
