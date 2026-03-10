@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/asm.dart';
 import '../services/profile/auth_services.dart';
 
@@ -41,6 +42,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   final AuthServices _authServices;
 
+  static const String _sessionLoggedInKey = 'session_logged_in';
+  static const String _sessionAsmIdKey = 'session_asm_id';
+
   /// Login with phone number and password
   Future<void> login(String phone, String password) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -70,24 +74,54 @@ class AuthNotifier extends StateNotifier<AuthState> {
         asmId: asmId,
         error: null,
       );
+      await _persistSession(asmId: asmId);
     } catch (error) {
       state = AuthState(error: _readErrorMessage(error));
     }
   }
 
-  void syncAuthenticatedUser(ASM profile) {
+  Future<void> syncAuthenticatedUser(ASM profile) async {
+    final asmId = profile.asmId ?? profile.id;
     state = state.copyWith(
       isAuthenticated: true,
       isLoading: false,
       user: profile,
-      asmId: profile.asmId ?? profile.id,
+      asmId: asmId,
       error: null,
     );
+    await _persistSession(asmId: asmId);
+  }
+
+  Future<bool> restoreSession() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      final isLoggedIn = preferences.getBool(_sessionLoggedInKey) ?? false;
+      final asmId = preferences.getString(_sessionAsmIdKey);
+
+      if (!isLoggedIn || asmId == null || asmId.isEmpty) {
+        state = AuthState();
+        return false;
+      }
+
+      state = state.copyWith(
+        isAuthenticated: true,
+        isLoading: false,
+        asmId: asmId,
+        error: null,
+      );
+      return true;
+    } catch (_) {
+      state = AuthState();
+      return false;
+    }
   }
 
   /// Logout current user
-  void logout() {
+  Future<void> logout() async {
     state = AuthState();
+    await _clearSession();
   }
 
   /// Clear error message
@@ -107,5 +141,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return message.substring('Exception: '.length);
     }
     return message;
+  }
+
+  Future<void> _persistSession({required String asmId}) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool(_sessionLoggedInKey, true);
+    await preferences.setString(_sessionAsmIdKey, asmId);
+  }
+
+  Future<void> _clearSession() async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove(_sessionLoggedInKey);
+    await preferences.remove(_sessionAsmIdKey);
   }
 }
