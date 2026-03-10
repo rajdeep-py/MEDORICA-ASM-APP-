@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,13 +18,24 @@ class VisualAdsScreen extends ConsumerStatefulWidget {
 
 class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
   late PageController _pageController;
+  late TransformationController _transformationController;
+  late TextEditingController _searchController;
   int _currentIndex = 0;
   bool _isTransitioning = false;
+  bool _showSearchField = false;
+  double _currentScale = 1.0;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    _transformationController = TransformationController();
+    _searchController = TextEditingController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(visualAdsProvider.notifier).loadVisualAds();
+    });
+
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -32,6 +45,8 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _transformationController.dispose();
+    _searchController.dispose();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -39,6 +54,74 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
       DeviceOrientation.landscapeRight,
     ]);
     super.dispose();
+  }
+
+  void _resetZoom() {
+    _transformationController.value = Matrix4.identity();
+    setState(() => _currentScale = 1.0);
+  }
+
+  void _zoomIn() {
+    final next = (_currentScale + 0.25).clamp(1.0, 4.0);
+    _transformationController.value = Matrix4.identity()..scale(next);
+    setState(() => _currentScale = next);
+  }
+
+  void _zoomOut() {
+    final next = (_currentScale - 0.25).clamp(1.0, 4.0);
+    _transformationController.value = Matrix4.identity()..scale(next);
+    setState(() => _currentScale = next);
+  }
+
+  Widget _buildAdImage(VisualAd ad) {
+    final imagePath = ad.displayImagePath;
+
+    if (imagePath.isEmpty) {
+      return _buildImageFallback('Image unavailable');
+    }
+
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return Image.network(
+        imagePath,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => _buildImageFallback('Image not found'),
+      );
+    }
+
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(
+        imagePath,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => _buildImageFallback('Image not found'),
+      );
+    }
+
+    final file = File(imagePath);
+    if (!file.existsSync()) {
+      return _buildImageFallback('Downloaded image missing');
+    }
+
+    return Image.file(
+      file,
+      fit: BoxFit.contain,
+      errorBuilder: (_, _, _) => _buildImageFallback('Image not found'),
+    );
+  }
+
+  Widget _buildImageFallback(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Iconsax.image, size: 48, color: AppColors.quaternary),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            message,
+            style: AppTypography.body.copyWith(color: AppColors.quaternary),
+          ),
+        ],
+      ),
+    );
   }
 
   void _nextImage() {
@@ -68,12 +151,20 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
   }
 
   List<VisualAd> get _filteredAds => ref.watch(visualAdsFilteredProvider);
-  List<String> get _categories => ref.watch(visualAdsCategoriesProvider);
-  String? get _selectedCategory => ref.watch(filteredVisualAdsProvider);
 
   @override
   Widget build(BuildContext context) {
     final ads = _filteredAds;
+    final visualAdsState = ref.watch(visualAdsProvider);
+    final isLoading = visualAdsState.isLoading;
+    final error = visualAdsState.error;
+
+    if (isLoading && ads.isEmpty) {
+      return const Scaffold(
+        backgroundColor: AppColors.black,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     if (ads.isEmpty) {
       return Scaffold(
@@ -87,9 +178,23 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
           ),
         ),
         body: Center(
-          child: Text(
-            'No visual ads available',
-            style: AppTypography.bodyLarge.copyWith(color: AppColors.white),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                error ?? 'No visual ads available',
+                style: AppTypography.bodyLarge.copyWith(
+                  color: AppColors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              ElevatedButton(
+                onPressed: () => ref.read(visualAdsProvider.notifier).refreshVisualAds(),
+                style: AppButtonStyles.primaryButton(height: 44),
+                child: const Text('Retry'),
+              ),
+            ],
           ),
         ),
       );
@@ -103,59 +208,27 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
           PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
+              _resetZoom();
               setState(() => _currentIndex = index);
             },
             itemCount: ads.length,
             itemBuilder: (context, index) {
               final ad = ads[index];
               return InteractiveViewer(
+                transformationController: _transformationController,
+                panEnabled: true,
+                scaleEnabled: true,
                 minScale: 1.0,
                 maxScale: 4.0,
                 child: Container(
                   color: AppColors.black,
-                  child: Image.asset(
-                    ad.imagePath,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.black,
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Iconsax.image,
-                                size: 48,
-                                color: AppColors.quaternary,
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              Text(
-                                'Image not found',
-                                style: AppTypography.body.copyWith(
-                                  color: AppColors.quaternary,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              Text(
-                                ad.imagePath,
-                                style: AppTypography.bodySmall.copyWith(
-                                  color: AppColors.quaternary,
-                                  fontSize: 10,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                  child: _buildAdImage(ad),
                 ),
               );
             },
           ),
 
-          // Top Bar: Back and Filter Icons
+          // Top Bar: Back and Search
           Positioned(
             top: 0,
             left: 0,
@@ -193,9 +266,9 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
                     ),
                   ),
 
-                  // Filter Dropdown
+                  // Search area
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                     decoration: BoxDecoration(
                       color: AppColors.white.withAlpha(30),
                       borderRadius: BorderRadius.circular(AppBorderRadius.md),
@@ -203,53 +276,69 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
                         color: AppColors.white.withAlpha(50),
                       ),
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String?>(
-                        value: _selectedCategory,
-                        hint: Text(
-                          'All Slides',
-                          style: AppTypography.bodySmall.copyWith(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Iconsax.search_normal_1,
                             color: AppColors.white,
+                            size: 18,
                           ),
+                          onPressed: () {
+                            setState(() => _showSearchField = !_showSearchField);
+                            if (!_showSearchField) {
+                              _searchController.clear();
+                              ref.read(visualAdsSearchQueryProvider.notifier).state = '';
+                              _pageController.jumpToPage(0);
+                              setState(() => _currentIndex = 0);
+                            }
+                          },
                         ),
-                        dropdownColor: AppColors.black,
-                        icon: const Icon(
-                          Iconsax.arrow_down_1,
-                          color: AppColors.white,
-                          size: 16,
-                        ),
-                        items: [
-                          DropdownMenuItem<String?>(
-                            value: null,
-                            child: Text(
-                              'All Slides',
+                        if (_showSearchField)
+                          SizedBox(
+                            width: 220,
+                            child: TextField(
+                              controller: _searchController,
+                              autofocus: true,
                               style: AppTypography.bodySmall.copyWith(
                                 color: AppColors.white,
                               ),
+                              decoration: InputDecoration(
+                                hintText: 'Search medicine name',
+                                hintStyle: AppTypography.bodySmall.copyWith(
+                                  color: AppColors.white.withAlpha(170),
+                                ),
+                                isDense: true,
+                                border: InputBorder.none,
+                              ),
+                              onChanged: (value) {
+                                ref.read(visualAdsSearchQueryProvider.notifier).state = value;
+                                _pageController.jumpToPage(0);
+                                setState(() => _currentIndex = 0);
+                              },
                             ),
                           ),
-                          ..._categories.map((category) {
-                            return DropdownMenuItem<String?>(
-                              value: category,
-                              child: Text(
-                                category,
-                                style: AppTypography.bodySmall.copyWith(
-                                  color: AppColors.white,
-                                ),
-                              ),
-                            );
-                          }),
-                        ],
-                        onChanged: (value) {
-                          ref.read(filteredVisualAdsProvider.notifier).state = value;
-                          setState(() => _currentIndex = 0);
-                          _pageController.jumpToPage(0);
-                        },
-                      ),
+                      ],
                     ),
                   ),
                 ],
               ),
+            ),
+          ),
+
+          // Zoom controls
+          Positioned(
+            right: AppSpacing.lg,
+            top: 90,
+            child: Column(
+              children: [
+                _ZoomButton(icon: Iconsax.add, onTap: _zoomIn),
+                const SizedBox(height: AppSpacing.sm),
+                _ZoomButton(icon: Iconsax.minus, onTap: _zoomOut),
+                const SizedBox(height: AppSpacing.sm),
+                _ZoomButton(icon: Iconsax.refresh, onTap: _resetZoom),
+              ],
             ),
           ),
 
@@ -282,7 +371,7 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    ads[_currentIndex].title,
+                    ads[_currentIndex].medicineName,
                     style: AppTypography.body.copyWith(
                       color: AppColors.white,
                       fontWeight: FontWeight.w600,
@@ -373,6 +462,29 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ZoomButton extends StatelessWidget {
+  const _ZoomButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.white.withAlpha(30),
+      borderRadius: BorderRadius.circular(AppBorderRadius.md),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppBorderRadius.md),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          child: Icon(icon, color: AppColors.white, size: 18),
+        ),
       ),
     );
   }

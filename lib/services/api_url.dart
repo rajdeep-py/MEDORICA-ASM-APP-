@@ -12,11 +12,15 @@ class ApiUrl {
   static String asmUpdateById(String asmId) =>
       '/onboarding/asm/update-by/$asmId';
 
+  // Visual Ads Endpoints
+  static const String visualAdsGetAll = '/visual-ads/get-all';
+  static String visualAdsGetById(String adId) => '/visual-ads/get-by/$adId';
+
   // Helper method to get full URL
   static String getFullUrl(String endpoint) {
     return '$baseUrl$endpoint';
   }
 
-    // About Us Endpoints
+  // About Us Endpoints
   static const String aboutUsGetAll = '/about-us/get-all';
 }
