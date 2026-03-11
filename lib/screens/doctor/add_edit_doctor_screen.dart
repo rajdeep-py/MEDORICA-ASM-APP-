@@ -7,6 +7,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../theme/app_theme.dart';
 import '../../models/doctor.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/doctor_provider.dart';
 
 class AddEditDoctorScreen extends ConsumerStatefulWidget {
@@ -46,14 +47,18 @@ class _AddEditDoctorScreenState extends ConsumerState<AddEditDoctorScreen> {
     _phoneController = TextEditingController(text: doctor?.phoneNumber ?? '');
     _emailController = TextEditingController(text: doctor?.email ?? '');
     _photoController = TextEditingController(text: doctor?.photo ?? '');
-    _specializationController =
-        TextEditingController(text: doctor?.specialization ?? '');
-    _experienceController =
-        TextEditingController(text: doctor?.experience ?? '');
-    _qualificationController =
-        TextEditingController(text: doctor?.qualification ?? '');
-    _descriptionController =
-        TextEditingController(text: doctor?.description ?? '');
+    _specializationController = TextEditingController(
+      text: doctor?.specialization ?? '',
+    );
+    _experienceController = TextEditingController(
+      text: doctor?.experience ?? '',
+    );
+    _qualificationController = TextEditingController(
+      text: doctor?.qualification ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: doctor?.description ?? '',
+    );
     _chamberNameController = TextEditingController();
     _chamberAddressController = TextEditingController();
     _chamberPhoneController = TextEditingController();
@@ -125,13 +130,21 @@ class _AddEditDoctorScreenState extends ConsumerState<AddEditDoctorScreen> {
     setState(() => _chambers.removeAt(index));
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _chambers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill all fields and add at least one chamber'),
         ),
       );
+      return;
+    }
+
+    final asmId = ref.read(authNotifierProvider).asmId;
+    if (asmId == null || asmId.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('ASM session not found')));
       return;
     }
 
@@ -147,23 +160,59 @@ class _AddEditDoctorScreenState extends ConsumerState<AddEditDoctorScreen> {
       experience: _experienceController.text.trim(),
       qualification: _qualificationController.text.trim(),
       description: _descriptionController.text.trim(),
+      address: widget.doctor?.address ?? '',
+      birthday: widget.doctor?.birthday,
       chambers: _chambers,
     );
 
-    if (widget.doctor == null) {
-      ref.read(doctorProvider.notifier).addDoctor(doctor);
+    try {
+      if (widget.doctor == null) {
+        await ref
+            .read(doctorNotifierProvider.notifier)
+            .addDoctor(
+              asmId: asmId,
+              doctor: doctor,
+              doctorPhotoPath: _selectedPhoto?.path,
+            );
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Doctor added successfully')),
+        );
+      } else {
+        await ref
+            .read(doctorNotifierProvider.notifier)
+            .updateDoctor(
+              asmId: asmId,
+              doctorId: widget.doctor!.id,
+              doctor: doctor,
+              doctorPhotoPath: _selectedPhoto?.path,
+            );
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Doctor updated successfully')),
+        );
+      }
+
+      if (!mounted) {
+        return;
+      }
+      setState(() => _loading = false);
+      context.go('/asm/doctor');
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Doctor added successfully')),
-      );
-    } else {
-      ref.read(doctorProvider.notifier).updateDoctor(doctor);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Doctor updated successfully')),
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+        ),
       );
     }
-
-    setState(() => _loading = false);
-    context.go('/asm/doctor');
   }
 
   @override
@@ -176,8 +225,7 @@ class _AddEditDoctorScreenState extends ConsumerState<AddEditDoctorScreen> {
         backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Iconsax.arrow_circle_left,
-              color: AppColors.primary),
+          icon: const Icon(Iconsax.arrow_circle_left, color: AppColors.primary),
           onPressed: () => context.pop(),
         ),
         title: Column(
@@ -376,8 +424,9 @@ class _AddEditDoctorScreenState extends ConsumerState<AddEditDoctorScreen> {
                             padding: const EdgeInsets.all(AppSpacing.sm),
                             decoration: BoxDecoration(
                               color: AppColors.surface,
-                              borderRadius:
-                                  BorderRadius.circular(AppBorderRadius.md),
+                              borderRadius: BorderRadius.circular(
+                                AppBorderRadius.md,
+                              ),
                               border: Border.all(color: AppColors.surface300),
                             ),
                             child: Row(
@@ -462,9 +511,7 @@ class _AddEditDoctorScreenState extends ConsumerState<AddEditDoctorScreen> {
       style: AppTypography.bodyLarge,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: AppTypography.body.copyWith(
-          color: AppColors.quaternary,
-        ),
+        labelStyle: AppTypography.body.copyWith(color: AppColors.quaternary),
         prefixIcon: Icon(icon, color: AppColors.primary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppBorderRadius.lg),
@@ -476,10 +523,7 @@ class _AddEditDoctorScreenState extends ConsumerState<AddEditDoctorScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppBorderRadius.lg),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
@@ -574,9 +618,7 @@ class _AddEditDoctorScreenState extends ConsumerState<AddEditDoctorScreen> {
               // Pick Button
               Container(
                 decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: AppColors.border),
-                  ),
+                  border: Border(top: BorderSide(color: AppColors.border)),
                 ),
                 child: ListTile(
                   onTap: _pickPhotoFromGallery,
@@ -586,7 +628,9 @@ class _AddEditDoctorScreenState extends ConsumerState<AddEditDoctorScreen> {
                     color: AppColors.primary,
                   ),
                   title: Text(
-                    _selectedPhoto != null ? 'Change Photo' : 'Select from Gallery',
+                    _selectedPhoto != null
+                        ? 'Change Photo'
+                        : 'Select from Gallery',
                     style: AppTypography.body.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w500,
@@ -603,9 +647,7 @@ class _AddEditDoctorScreenState extends ConsumerState<AddEditDoctorScreen> {
               if (_photoController.text.isNotEmpty)
                 Container(
                   decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: AppColors.border),
-                    ),
+                    border: Border(top: BorderSide(color: AppColors.border)),
                   ),
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Column(

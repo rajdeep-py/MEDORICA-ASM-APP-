@@ -36,4 +36,19 @@ class ApiUrl {
 
   // Team Endpoints
   static String teamGetByAsmId(String asmId) => '/team/get-by-asm/$asmId';
+
+  // ASM Doctor Network Endpoints
+  static const String doctorNetworkAsmPost = '/doctor-network/asm/post';
+  static String doctorNetworkGetByAsmId(String asmId) =>
+      '/doctor-network/asm/get-by-asm/$asmId';
+  static String doctorNetworkGetByAsmAndDoctorId(
+    String asmId,
+    String doctorId,
+  ) => '/doctor-network/asm/get-by/$asmId/$doctorId';
+  static String doctorNetworkUpdateByAsmAndDoctorId(
+    String asmId,
+    String doctorId,
+  ) => '/doctor-network/asm/update-by/$asmId/$doctorId';
+  static String doctorNetworkDeleteByDoctorId(String doctorId) =>
+      '/doctor-network/asm/delete-by/$doctorId';
 }

@@ -11,8 +11,8 @@ import '../../cards/doctor/doctor_qualification_card.dart';
 import '../../cards/doctor/doctor_description_card.dart';
 import '../../cards/doctor/doctor_contact_card.dart';
 import '../../cards/doctor/doctor_chambers_card.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/doctor_provider.dart';
-
 
 class DoctorDetailScreen extends ConsumerWidget {
   final String doctorId;
@@ -21,24 +21,60 @@ class DoctorDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final doctorAsync = ref.watch(doctorDetailProvider(doctorId));
+    final doctorAsync = ref.watch(doctorDetailRemoteProvider(doctorId));
 
-    return doctorAsync == null
-        ? Scaffold(
+    return doctorAsync.when(
+      loading: () => Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(
+              Iconsax.arrow_circle_left,
+              color: AppColors.primary,
+            ),
+            onPressed: () => context.pop(),
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stackTrace) => Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(
+              Iconsax.arrow_circle_left,
+              color: AppColors.primary,
+            ),
+            onPressed: () => context.pop(),
+          ),
+        ),
+        body: Center(
+          child: Text(error.toString().replaceFirst('Exception: ', '')),
+        ),
+      ),
+      data: (doctor) {
+        if (doctor == null) {
+          return Scaffold(
             appBar: AppBar(
               backgroundColor: AppColors.white,
               elevation: 0,
               leading: IconButton(
-                icon: const Icon(Iconsax.arrow_circle_left,
-                    color: AppColors.primary),
+                icon: const Icon(
+                  Iconsax.arrow_circle_left,
+                  color: AppColors.primary,
+                ),
                 onPressed: () => context.pop(),
               ),
             ),
-            body: const Center(
-              child: Text('Doctor not found'),
-            ),
-          )
-        : _buildDoctorDetail(context, ref, doctorAsync);
+            body: const Center(child: Text('Doctor not found')),
+          );
+        }
+
+        return _buildDoctorDetail(context, ref, doctor);
+      },
+    );
   }
 
   Widget _buildDoctorDetail(
@@ -52,8 +88,7 @@ class DoctorDetailScreen extends ConsumerWidget {
         backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon:
-              const Icon(Iconsax.arrow_circle_left, color: AppColors.primary),
+          icon: const Icon(Iconsax.arrow_circle_left, color: AppColors.primary),
           onPressed: () => context.pop(),
         ),
         actions: [
@@ -76,9 +111,7 @@ class DoctorDetailScreen extends ConsumerWidget {
         icon: const Icon(Iconsax.calendar, color: AppColors.white),
         label: Text(
           'Book Appointment',
-          style: AppTypography.buttonMedium.copyWith(
-            color: AppColors.white,
-          ),
+          style: AppTypography.buttonMedium.copyWith(color: AppColors.white),
         ),
       ),
       body: SingleChildScrollView(
@@ -134,11 +167,7 @@ class DoctorDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _showDeleteDialog(
-    BuildContext context,
-    WidgetRef ref,
-    Doctor doctor,
-  ) {
+  void _showDeleteDialog(BuildContext context, WidgetRef ref, Doctor doctor) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -150,18 +179,42 @@ class DoctorDetailScreen extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
-            onPressed: () {
-              ref.read(doctorProvider.notifier).deleteDoctor(doctor.id);
-              Navigator.of(context).pop();
-              context.pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Doctor deleted successfully'),
-                ),
-              );
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () async {
+              final asmId = ref.read(authNotifierProvider).asmId;
+              if (asmId == null || asmId.trim().isEmpty) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('ASM session not found')),
+                );
+                return;
+              }
+
+              try {
+                await ref
+                    .read(doctorNotifierProvider.notifier)
+                    .deleteDoctor(asmId: asmId, doctorId: doctor.id);
+                if (!context.mounted) {
+                  return;
+                }
+                Navigator.of(context).pop();
+                context.pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Doctor deleted successfully')),
+                );
+              } catch (error) {
+                if (!context.mounted) {
+                  return;
+                }
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      error.toString().replaceFirst('Exception: ', ''),
+                    ),
+                  ),
+                );
+              }
             },
             child: const Text(
               'Delete',

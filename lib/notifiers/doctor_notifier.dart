@@ -1,102 +1,135 @@
 import 'package:flutter_riverpod/legacy.dart';
 import '../models/doctor.dart';
+import '../services/doctor_network/doctor_network_services.dart';
 
-class DoctorNotifier extends StateNotifier<List<Doctor>> {
-  DoctorNotifier() : super([]) {
-    _loadDoctors();
+class DoctorState {
+  final List<Doctor> doctors;
+  final bool isLoading;
+  final String? error;
+
+  const DoctorState({
+    this.doctors = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  DoctorState copyWith({
+    List<Doctor>? doctors,
+    bool? isLoading,
+    String? error,
+  }) {
+    return DoctorState(
+      doctors: doctors ?? this.doctors,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+class DoctorNotifier extends StateNotifier<DoctorState> {
+  DoctorNotifier(this._doctorNetworkServices) : super(const DoctorState());
+
+  final DoctorNetworkServices _doctorNetworkServices;
+  String? _activeAsmId;
+
+  Future<void> syncAsm(String? asmId) async {
+    final nextAsmId = asmId?.trim();
+    if (nextAsmId == null || nextAsmId.isEmpty) {
+      _activeAsmId = null;
+      state = const DoctorState();
+      return;
+    }
+
+    if (_activeAsmId == nextAsmId &&
+        (state.doctors.isNotEmpty || state.isLoading)) {
+      return;
+    }
+
+    _activeAsmId = nextAsmId;
+    await loadDoctorsByAsmId(nextAsmId);
   }
 
-  // Load doctors - mock data for now
-  void _loadDoctors() {
-    state = [
-      Doctor(
-        id: '1',
-        name: 'Dr. Ahmed Khan',
-        phoneNumber: '+880 1700 123456',
-        email: 'ahmed.khan@hospital.com',
-        photo: 'https://via.placeholder.com/400x300?text=Dr.+Ahmed+Khan',
-        specialization: 'Cardiology',
-        experience: '15 years',
-        qualification: 'MBBS, MD (Cardiology)',
-        description: 'Experienced cardiologist with 15 years of practice in managing complex cardiac conditions.',
-        chambers: [
-          DoctorChamber(
-            id: '1',
-            name: 'Khan Heart Care Clinic',
-            address: '123 Gulshan Avenue, Dhaka',
-            phoneNumber: '+880 2 8000 1234',
-          ),
-          DoctorChamber(
-            id: '2',
-            name: 'Cardiac Center DMC',
-            address: '456 Dhanmondi Road, Dhaka',
-            phoneNumber: '+880 2 8000 5678',
-          ),
-        ],
-      ),
-      Doctor(
-        id: '2',
-        name: 'Dr. Fatima Begum',
-        phoneNumber: '+880 1800 234567',
-        email: 'fatima.begum@hospital.com',
-        photo: 'https://via.placeholder.com/400x300?text=Dr.+Fatima+Begum',
-        specialization: 'Orthopedics',
-        experience: '12 years',
-        qualification: 'MBBS, MS (Orthopedics)',
-        description: 'Specialist in orthopedic surgery with focus on joint replacements and sports injuries.',
-        chambers: [
-          DoctorChamber(
-            id: '3',
-            name: 'Bone & Joint Clinic',
-            address: '789 Mirpur Road, Dhaka',
-            phoneNumber: '+880 2 8000 9999',
-          ),
-        ],
-      ),
-      Doctor(
-        id: '3',
-        name: 'Dr. Rajesh Sharma',
-        phoneNumber: '+880 1900 345678',
-        email: 'rajesh.sharma@hospital.com',
-        photo: 'https://via.placeholder.com/400x300?text=Dr.+Rajesh+Sharma',
-        specialization: 'Neurology',
-        experience: '10 years',
-        qualification: 'MBBS, MD (Neurology)',
-        description: 'Expert in neurological disorders including stroke, epilepsy, and Parkinson\'s disease.',
-        chambers: [
-          DoctorChamber(
-            id: '4',
-            name: 'Neuro Center',
-            address: '321 Banani, Dhaka',
-            phoneNumber: '+880 2 8000 7777',
-          ),
-        ],
-      ),
-    ];
+  Future<void> loadDoctorsByAsmId(String asmId) async {
+    final trimmedAsmId = asmId.trim();
+    if (trimmedAsmId.isEmpty) {
+      state = const DoctorState(error: 'ASM ID is required to load doctors.');
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final doctors = await _doctorNetworkServices.fetchDoctorsByAsmId(
+        trimmedAsmId,
+      );
+      state = state.copyWith(doctors: doctors, isLoading: false, error: null);
+    } catch (error) {
+      state = state.copyWith(
+        isLoading: false,
+        doctors: const [],
+        error: _readErrorMessage(error),
+      );
+    }
   }
 
-  // Add a new doctor
-  void addDoctor(Doctor doctor) {
-    state = [...state, doctor.copyWith(id: DateTime.now().toString())];
+  Future<void> addDoctor({
+    required String asmId,
+    required Doctor doctor,
+    String? doctorPhotoPath,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _doctorNetworkServices.createDoctor(
+        asmId: asmId,
+        doctor: doctor,
+        doctorPhotoPath: doctorPhotoPath,
+      );
+      await loadDoctorsByAsmId(asmId);
+    } catch (error) {
+      state = state.copyWith(isLoading: false, error: _readErrorMessage(error));
+      rethrow;
+    }
   }
 
-  // Update a doctor
-  void updateDoctor(Doctor updatedDoctor) {
-    state = [
-      for (final doctor in state)
-        if (doctor.id == updatedDoctor.id) updatedDoctor else doctor,
-    ];
+  Future<void> updateDoctor({
+    required String asmId,
+    required String doctorId,
+    required Doctor doctor,
+    String? doctorPhotoPath,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _doctorNetworkServices.updateDoctorByAsmAndDoctorId(
+        asmId: asmId,
+        doctorId: doctorId,
+        doctor: doctor,
+        doctorPhotoPath: doctorPhotoPath,
+      );
+      await loadDoctorsByAsmId(asmId);
+    } catch (error) {
+      state = state.copyWith(isLoading: false, error: _readErrorMessage(error));
+      rethrow;
+    }
   }
 
-  // Delete a doctor
-  void deleteDoctor(String id) {
-    state = [for (final doctor in state) if (doctor.id != id) doctor];
+  Future<void> deleteDoctor({
+    required String asmId,
+    required String doctorId,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _doctorNetworkServices.deleteDoctorByDoctorId(doctorId);
+      await loadDoctorsByAsmId(asmId);
+    } catch (error) {
+      state = state.copyWith(isLoading: false, error: _readErrorMessage(error));
+      rethrow;
+    }
   }
 
   // Get a doctor by id
   Doctor? getDoctorById(String id) {
     try {
-      return state.firstWhere((doctor) => doctor.id == id);
+      return state.doctors.firstWhere((doctor) => doctor.id == id);
     } catch (e) {
       return null;
     }
@@ -104,25 +137,42 @@ class DoctorNotifier extends StateNotifier<List<Doctor>> {
 
   // Search doctors
   List<Doctor> searchDoctors(String query) {
-    if (query.isEmpty) return state;
+    if (query.isEmpty) return state.doctors;
     final lowerQuery = query.toLowerCase();
-    return state
-        .where((doctor) =>
-            doctor.name.toLowerCase().contains(lowerQuery) ||
-            doctor.specialization.toLowerCase().contains(lowerQuery))
+    return state.doctors
+        .where(
+          (doctor) =>
+              doctor.name.toLowerCase().contains(lowerQuery) ||
+              doctor.specialization.toLowerCase().contains(lowerQuery),
+        )
         .toList();
   }
 
   // Filter by specialization
   List<Doctor> filterBySpecialization(String specialization) {
-    if (specialization.isEmpty) return state;
-    return state
+    if (specialization.isEmpty) return state.doctors;
+    return state.doctors
         .where((doctor) => doctor.specialization == specialization)
         .toList();
   }
 
   // Get all specializations
   List<String> getAllSpecializations() {
-    return state.map((doctor) => doctor.specialization).toSet().toList();
+    return state.doctors
+        .map((doctor) => doctor.specialization)
+        .toSet()
+        .toList();
+  }
+
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+
+  String _readErrorMessage(Object error) {
+    final message = error.toString();
+    if (message.startsWith('Exception: ')) {
+      return message.substring('Exception: '.length);
+    }
+    return message;
   }
 }
