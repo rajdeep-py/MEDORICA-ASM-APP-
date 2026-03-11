@@ -195,7 +195,7 @@ class _ScheduleEditAppointmentScreenState
   Future<void> _pickCompletionProofImage() async {
     try {
       final picked = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
+        source: ImageSource.camera,
         imageQuality: 80,
       );
       if (picked != null) {
@@ -636,7 +636,7 @@ class _ScheduleEditAppointmentScreenState
               if (_selectedStatus == AppointmentStatus.completed)
                 _buildSectionCard(
                   title: 'Completion Proof Photo',
-                  icon: Iconsax.gallery,
+                  icon: Iconsax.camera,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -644,14 +644,14 @@ class _ScheduleEditAppointmentScreenState
                         onPressed: _pickCompletionProofImage,
                         style: AppButtonStyles.primaryButton(height: 42),
                         icon: const Icon(
-                          Iconsax.image,
+                          Iconsax.camera,
                           color: AppColors.white,
                           size: 18,
                         ),
                         label: Text(
                           _completionProofImage == null
-                              ? 'Upload Proof Photo'
-                              : 'Change Proof Photo',
+                              ? 'Capture Proof Photo'
+                              : 'Recapture Proof Photo',
                           style: AppTypography.buttonMedium.copyWith(
                             color: AppColors.white,
                           ),

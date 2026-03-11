@@ -33,7 +33,10 @@ final appointmentProvider = Provider<List<Appointment>>((ref) {
 });
 
 // Provider for a single appointment by ID
-final appointmentDetailProvider = Provider.family<Appointment?, String>((
+final appointmentDetailProvider = Provider.autoDispose.family<
+  Appointment?,
+  String
+>((
   ref,
   id,
 ) {
