@@ -4,13 +4,8 @@ import '../../theme/app_theme.dart';
 
 class DistributorSearchFilterCard extends StatefulWidget {
   final Function(String) onSearch;
-  final Function(String?) onFilterChange;
 
-  const DistributorSearchFilterCard({
-    super.key,
-    required this.onSearch,
-    required this.onFilterChange,
-  });
+  const DistributorSearchFilterCard({super.key, required this.onSearch});
 
   @override
   State<DistributorSearchFilterCard> createState() =>
@@ -20,7 +15,6 @@ class DistributorSearchFilterCard extends StatefulWidget {
 class _DistributorSearchFilterCardState
     extends State<DistributorSearchFilterCard> {
   late TextEditingController _searchController;
-  String? _selectedFilter;
 
   @override
   void initState() {
@@ -76,42 +70,6 @@ class _DistributorSearchFilterCardState
                 contentPadding: const EdgeInsets.symmetric(vertical: 6),
               ),
               style: AppTypography.body.copyWith(color: AppColors.primary),
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 20,
-            color: AppColors.primaryLight,
-            margin: const EdgeInsets.symmetric(horizontal: 6),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              setState(() => _selectedFilter = value);
-              widget.onFilterChange(value);
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(
-                value: 'all',
-                child: Text('All Distributors'),
-              ),
-              const PopupMenuItem(
-                value: 'lowOrder',
-                child: Text('Low Min. Order'),
-              ),
-              const PopupMenuItem(
-                value: 'fastDelivery',
-                child: Text('Fast Delivery'),
-              ),
-            ],
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Icon(
-                Iconsax.setting_3,
-                color: _selectedFilter != null
-                    ? AppColors.primary
-                    : AppColors.quaternary,
-                size: 20,
-              ),
             ),
           ),
         ],

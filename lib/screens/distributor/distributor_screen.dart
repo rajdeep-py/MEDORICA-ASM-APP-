@@ -66,9 +66,6 @@ class _DistributorScreenState extends ConsumerState<DistributorScreen> {
                     _searchQuery = query;
                   });
                 },
-                onFilterChange: (filter) {
-                  // Handle filter changes
-                },
               ),
               const SizedBox(height: AppSpacing.md),
               // Distributor List
