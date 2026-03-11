@@ -80,4 +80,15 @@ class ApiUrl {
       '/chemist-shop/asm/update-by/$asmId/$shopId';
   static String chemistShopDeleteByAsmAndShopId(String asmId, String shopId) =>
       '/chemist-shop/asm/delete-by/$asmId/$shopId';
+
+  // ASM Appointment Endpoints
+  static const String appointmentAsmPost = '/appointment/asm/post';
+  static String appointmentGetByAsmId(String asmId) =>
+      '/appointment/asm/get-by-asm/$asmId';
+  static String appointmentGetById(String appointmentId) =>
+      '/appointment/asm/get-by/$appointmentId';
+  static String appointmentUpdateById(String appointmentId) =>
+      '/appointment/asm/update-by/$appointmentId';
+  static String appointmentDeleteById(String appointmentId) =>
+      '/appointment/asm/delete-by/$appointmentId';
 }

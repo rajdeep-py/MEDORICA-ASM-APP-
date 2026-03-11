@@ -1,12 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+
 import '../../models/appointment.dart';
 import '../../models/doctor.dart';
+import '../../models/visual_ads.dart';
 import '../../providers/appointment_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/doctor_provider.dart';
+import '../../providers/visual_ads_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
 
@@ -28,14 +35,18 @@ class ScheduleEditAppointmentScreen extends ConsumerStatefulWidget {
 class _ScheduleEditAppointmentScreenState
     extends ConsumerState<ScheduleEditAppointmentScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _messageController = TextEditingController();
+  final _placeController = TextEditingController();
 
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String? _selectedDoctorId;
-  AppointmentStatus _selectedStatus = AppointmentStatus.scheduled;
+  AppointmentStatus _selectedStatus = AppointmentStatus.pending;
+  final Set<String> _selectedVisualAdIds = <String>{};
+  File? _completionProofImage;
+  bool _isSubmitting = false;
 
   bool _isEditMode = false;
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -43,20 +54,29 @@ class _ScheduleEditAppointmentScreenState
     _isEditMode = widget.appointmentId != null;
     _selectedDoctorId = widget.initialDoctorId;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final adsState = ref.read(visualAdsProvider);
+      if (adsState.ads.isEmpty && !adsState.isLoading) {
+        ref.read(visualAdsProvider.notifier).loadVisualAds();
+      }
+    });
+
     // If editing, load appointment data
     if (_isEditMode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final appointment = ref.read(appointmentDetailProvider(widget.appointmentId!));
+        final appointment = ref.read(
+          appointmentDetailProvider(widget.appointmentId!),
+        );
         if (appointment != null) {
           setState(() {
             _selectedDate = appointment.date;
-            _selectedTime = TimeOfDay(
-              hour: int.parse(appointment.time.split(':')[0].split(' ')[0]),
-              minute: int.parse(appointment.time.split(':')[1].split(' ')[0]),
-            );
+            _selectedTime = _parseTimeOfDay(appointment.time);
             _selectedDoctorId = appointment.doctorId;
             _selectedStatus = appointment.status;
-            _messageController.text = appointment.message;
+            _placeController.text = appointment.message;
+            _selectedVisualAdIds
+              ..clear()
+              ..addAll(appointment.visualAds.map((ad) => ad.id));
           });
         }
       });
@@ -65,8 +85,52 @@ class _ScheduleEditAppointmentScreenState
 
   @override
   void dispose() {
-    _messageController.dispose();
+    _placeController.dispose();
     super.dispose();
+  }
+
+  TimeOfDay _parseTimeOfDay(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return TimeOfDay.now();
+    }
+
+    // Normalize all unicode/regular spaces so strings like "6:30 PM" and
+    // "6:30 PM" (narrow no-break space) are parsed consistently.
+    final normalized = trimmed.replaceAll(RegExp(r'\s+'), ' ');
+
+    final meridiemMatch = RegExp(
+      r'^(\d{1,2}):(\d{2})\s*([AaPp][Mm])$',
+    ).firstMatch(normalized);
+    if (meridiemMatch != null) {
+      final rawHour = int.tryParse(meridiemMatch.group(1) ?? '') ?? 0;
+      final minute = int.tryParse(meridiemMatch.group(2) ?? '') ?? 0;
+      final marker = (meridiemMatch.group(3) ?? '').toUpperCase();
+
+      var hour = rawHour % 12;
+      if (marker == 'PM') {
+        hour += 12;
+      }
+
+      return TimeOfDay(hour: hour, minute: minute.clamp(0, 59));
+    }
+
+    final twentyFourMatch = RegExp(
+      r'^(\d{1,2}):(\d{2})$',
+    ).firstMatch(normalized);
+    if (twentyFourMatch != null) {
+      final hour = (int.tryParse(twentyFourMatch.group(1) ?? '') ?? 0).clamp(
+        0,
+        23,
+      );
+      final minute = (int.tryParse(twentyFourMatch.group(2) ?? '') ?? 0).clamp(
+        0,
+        59,
+      );
+      return TimeOfDay(hour: hour, minute: minute);
+    }
+
+    return TimeOfDay.now();
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -128,55 +192,159 @@ class _ScheduleEditAppointmentScreenState
     return '$hour:$minute $period';
   }
 
-  void _saveAppointment() {
+  Future<void> _pickCompletionProofImage() async {
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      if (picked != null) {
+        setState(() {
+          _completionProofImage = File(picked.path);
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not pick completion proof image'),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveAppointment() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a date')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Please select a date')));
         return;
       }
       if (_selectedTime == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a time')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Please select a time')));
         return;
       }
       if (_selectedDoctorId == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Please select a doctor')));
+        return;
+      }
+
+      if (_selectedVisualAdIds.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a doctor')),
+          const SnackBar(content: Text('Please select at least one visual ad')),
         );
         return;
       }
 
+      final asmId = ref.read(authNotifierProvider).asmId;
+      if (asmId == null || asmId.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Not authenticated. Please log in again.'),
+          ),
+        );
+        return;
+      }
+
+      final existing = _isEditMode
+          ? ref.read(appointmentDetailProvider(widget.appointmentId!))
+          : null;
+
+      final requiresProof = _selectedStatus == AppointmentStatus.completed;
+      final hasExistingProof =
+          existing?.completionPhotoProof != null &&
+          existing!.completionPhotoProof!.trim().isNotEmpty;
+      if (requiresProof && _completionProofImage == null && !hasExistingProof) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Completion proof photo is required for completed status',
+            ),
+          ),
+        );
+        return;
+      }
+
+      final allAds = ref.read(visualAdsProvider).ads;
+      final selectedVisualAds = allAds
+          .where((ad) => _selectedVisualAdIds.contains(ad.id.toString()))
+          .map(
+            (ad) => AppointmentVisualAd(
+              id: ad.id.toString(),
+              medicineName: ad.medicineName,
+            ),
+          )
+          .toList();
+
       final appointment = Appointment(
-        id: widget.appointmentId ?? DateTime.now().toString(),
+        id: widget.appointmentId ?? '',
+        asmId: asmId,
         doctorId: _selectedDoctorId!,
         date: _selectedDate!,
         time: _formatTime(_selectedTime!),
-        message: _messageController.text.trim(),
+        message: _placeController.text.trim(),
         status: _selectedStatus,
+        completionPhotoProof: existing?.completionPhotoProof,
+        visualAds: selectedVisualAds,
       );
 
-      if (_isEditMode) {
-        ref.read(appointmentProvider.notifier).updateAppointment(appointment);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Appointment updated successfully')),
-        );
-      } else {
-        ref.read(appointmentProvider.notifier).addAppointment(appointment);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Appointment scheduled successfully')),
-        );
-      }
+      setState(() => _isSubmitting = true);
 
-      context.go('/asm/appointments');
+      try {
+        if (_isEditMode) {
+          await ref
+              .read(appointmentNotifierProvider.notifier)
+              .updateAppointment(
+                asmId: asmId,
+                appointment: appointment,
+                completionPhotoProofPath: _completionProofImage?.path,
+              );
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Appointment updated successfully')),
+          );
+        } else {
+          await ref
+              .read(appointmentNotifierProvider.notifier)
+              .addAppointment(
+                asmId: asmId,
+                appointment: appointment,
+                completionPhotoProofPath: _completionProofImage?.path,
+              );
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Appointment scheduled successfully')),
+          );
+        }
+
+        context.go('/asm/appointments');
+      } catch (error) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isSubmitting = false);
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final doctors = ref.watch(doctorProvider);
+    final visualAdsState = ref.watch(visualAdsProvider);
+    final visualAds = visualAdsState.ads;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -214,8 +382,9 @@ class _ScheduleEditAppointmentScreenState
                         Text(
                           _selectedDate == null
                               ? 'Select Date'
-                              : DateFormat('EEEE, MMM dd, yyyy')
-                                  .format(_selectedDate!),
+                              : DateFormat(
+                                  'EEEE, MMM dd, yyyy',
+                                ).format(_selectedDate!),
                           style: AppTypography.body.copyWith(
                             color: _selectedDate == null
                                 ? AppColors.quaternary
@@ -284,13 +453,18 @@ class _ScheduleEditAppointmentScreenState
                       value: _selectedDoctorId,
                       hint: Text(
                         'Choose a doctor',
-                        style: AppTypography.body
-                            .copyWith(color: AppColors.quaternary),
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.quaternary,
+                        ),
                       ),
                       isExpanded: true,
-                      icon: const Icon(Iconsax.arrow_down_1,
-                          color: AppColors.primary),
-                      style: AppTypography.body.copyWith(color: AppColors.black),
+                      icon: const Icon(
+                        Iconsax.arrow_down_1,
+                        color: AppColors.primary,
+                      ),
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.black,
+                      ),
                       items: doctors.map((Doctor doctor) {
                         return DropdownMenuItem<String>(
                           value: doctor.id,
@@ -300,13 +474,15 @@ class _ScheduleEditAppointmentScreenState
                             children: [
                               Text(
                                 doctor.name,
-                                style: AppTypography.body
-                                    .copyWith(color: AppColors.black),
+                                style: AppTypography.body.copyWith(
+                                  color: AppColors.black,
+                                ),
                               ),
                               Text(
                                 doctor.specialization,
-                                style: AppTypography.bodySmall
-                                    .copyWith(color: AppColors.quaternary),
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: AppColors.quaternary,
+                                ),
                               ),
                             ],
                           ),
@@ -341,17 +517,23 @@ class _ScheduleEditAppointmentScreenState
                     child: DropdownButton<AppointmentStatus>(
                       value: _selectedStatus,
                       isExpanded: true,
-                      icon: const Icon(Iconsax.arrow_down_1,
-                          color: AppColors.primary),
-                      style: AppTypography.body.copyWith(color: AppColors.black),
-                      items: AppointmentStatus.values
-                          .map((AppointmentStatus status) {
+                      icon: const Icon(
+                        Iconsax.arrow_down_1,
+                        color: AppColors.primary,
+                      ),
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.black,
+                      ),
+                      items: AppointmentStatus.values.map((
+                        AppointmentStatus status,
+                      ) {
                         return DropdownMenuItem<AppointmentStatus>(
                           value: status,
                           child: Text(
                             status.displayName,
-                            style: AppTypography.body
-                                .copyWith(color: AppColors.black),
+                            style: AppTypography.body.copyWith(
+                              color: AppColors.black,
+                            ),
                           ),
                         );
                       }).toList(),
@@ -368,18 +550,19 @@ class _ScheduleEditAppointmentScreenState
               ),
               const SizedBox(height: AppSpacing.lg),
 
-              // Message Card
+              // Place Card
               _buildSectionCard(
-                title: 'Appointment Message',
+                title: 'Appointment Place',
                 icon: Iconsax.message_text,
                 child: TextFormField(
-                  controller: _messageController,
-                  maxLines: 4,
+                  controller: _placeController,
+                  maxLines: 2,
                   style: AppTypography.body.copyWith(color: AppColors.black),
                   decoration: InputDecoration(
-                    hintText: 'Enter the reason for appointment...',
-                    hintStyle: AppTypography.body
-                        .copyWith(color: AppColors.quaternary),
+                    hintText: 'Enter appointment place...',
+                    hintStyle: AppTypography.body.copyWith(
+                      color: AppColors.quaternary,
+                    ),
                     filled: true,
                     fillColor: AppColors.surface200,
                     border: OutlineInputBorder(
@@ -392,27 +575,125 @@ class _ScheduleEditAppointmentScreenState
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: AppBorderRadius.mdRadius,
-                      borderSide:
-                          const BorderSide(color: AppColors.primary, width: 2),
+                      borderSide: const BorderSide(
+                        color: AppColors.primary,
+                        width: 2,
+                      ),
                     ),
                     contentPadding: const EdgeInsets.all(AppSpacing.md),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter the appointment message';
+                      return 'Please enter appointment place';
                     }
                     return null;
                   },
                 ),
               ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Visual Ads Selection Card
+              _buildSectionCard(
+                title: 'Select Visual Ads',
+                icon: Iconsax.image,
+                child: visualAdsState.isLoading && visualAds.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    : visualAds.isEmpty
+                    ? Text(
+                        'No visual ads available',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.quaternary,
+                        ),
+                      )
+                    : Wrap(
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.sm,
+                        children: visualAds.map((VisualAd ad) {
+                          final adId = ad.id.toString();
+                          final selected = _selectedVisualAdIds.contains(adId);
+                          return FilterChip(
+                            label: Text(ad.medicineName),
+                            selected: selected,
+                            onSelected: (isSelected) {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedVisualAdIds.add(adId);
+                                } else {
+                                  _selectedVisualAdIds.remove(adId);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Completion Proof Card
+              if (_selectedStatus == AppointmentStatus.completed)
+                _buildSectionCard(
+                  title: 'Completion Proof Photo',
+                  icon: Iconsax.gallery,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _pickCompletionProofImage,
+                        style: AppButtonStyles.primaryButton(height: 42),
+                        icon: const Icon(
+                          Iconsax.image,
+                          color: AppColors.white,
+                          size: 18,
+                        ),
+                        label: Text(
+                          _completionProofImage == null
+                              ? 'Upload Proof Photo'
+                              : 'Change Proof Photo',
+                          style: AppTypography.buttonMedium.copyWith(
+                            color: AppColors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      if (_completionProofImage != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            AppBorderRadius.md,
+                          ),
+                          child: Image.file(
+                            _completionProofImage!,
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      else if (_isEditMode)
+                        Text(
+                          'Keep existing proof photo or upload a new one.',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.quaternary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              if (_selectedStatus == AppointmentStatus.completed)
+                const SizedBox(height: AppSpacing.xxl),
               const SizedBox(height: AppSpacing.xxl),
 
               // Save Button
               ElevatedButton(
-                onPressed: _saveAppointment,
+                onPressed: _isSubmitting ? null : _saveAppointment,
                 style: AppButtonStyles.primaryButton(),
                 child: Text(
-                  _isEditMode ? 'Update Appointment' : 'Schedule Appointment',
+                  _isSubmitting
+                      ? 'Saving...'
+                      : _isEditMode
+                      ? 'Update Appointment'
+                      : 'Schedule Appointment',
                   style: AppTypography.buttonMedium.copyWith(
                     color: AppColors.white,
                   ),

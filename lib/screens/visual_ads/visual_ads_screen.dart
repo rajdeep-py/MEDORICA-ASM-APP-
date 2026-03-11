@@ -10,7 +10,9 @@ import '../../providers/visual_ads_provider.dart';
 import '../../theme/app_theme.dart';
 
 class VisualAdsScreen extends ConsumerStatefulWidget {
-  const VisualAdsScreen({super.key});
+  final Set<String>? onlyAdIds;
+
+  const VisualAdsScreen({super.key, this.onlyAdIds});
 
   @override
   ConsumerState<VisualAdsScreen> createState() => _VisualAdsScreenState();
@@ -24,6 +26,7 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
   bool _isTransitioning = false;
   bool _showSearchField = false;
   double _currentScale = 1.0;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -127,30 +130,55 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
   void _nextImage() {
     if (_isTransitioning || _currentIndex >= _filteredAds.length - 1) return;
     setState(() => _isTransitioning = true);
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-    ).then((_) {
-      setState(() => _isTransitioning = false);
-    }).catchError((_) {
-      setState(() => _isTransitioning = false);
-    });
+    _pageController
+        .nextPage(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        )
+        .then((_) {
+          setState(() => _isTransitioning = false);
+        })
+        .catchError((_) {
+          setState(() => _isTransitioning = false);
+        });
   }
 
   void _previousImage() {
     if (_isTransitioning || _currentIndex <= 0) return;
     setState(() => _isTransitioning = true);
-    _pageController.previousPage(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-    ).then((_) {
-      setState(() => _isTransitioning = false);
-    }).catchError((_) {
-      setState(() => _isTransitioning = false);
-    });
+    _pageController
+        .previousPage(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        )
+        .then((_) {
+          setState(() => _isTransitioning = false);
+        })
+        .catchError((_) {
+          setState(() => _isTransitioning = false);
+        });
   }
 
-  List<VisualAd> get _filteredAds => ref.watch(visualAdsFilteredProvider);
+  List<VisualAd> get _filteredAds {
+    final allAds = ref.watch(visualAdsProvider).ads;
+    Iterable<VisualAd> scoped = allAds;
+
+    final onlyIds = widget.onlyAdIds;
+    if (onlyIds != null && onlyIds.isNotEmpty) {
+      scoped = scoped.where(
+        (ad) => onlyIds.contains(ad.id.toString()) || onlyIds.contains(ad.adId),
+      );
+    }
+
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isNotEmpty) {
+      scoped = scoped.where(
+        (ad) => ad.medicineName.toLowerCase().contains(query),
+      );
+    }
+
+    return scoped.toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -183,14 +211,13 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
             children: [
               Text(
                 error ?? 'No visual ads available',
-                style: AppTypography.bodyLarge.copyWith(
-                  color: AppColors.white,
-                ),
+                style: AppTypography.bodyLarge.copyWith(color: AppColors.white),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.lg),
               ElevatedButton(
-                onPressed: () => ref.read(visualAdsProvider.notifier).refreshVisualAds(),
+                onPressed: () =>
+                    ref.read(visualAdsProvider.notifier).refreshVisualAds(),
                 style: AppButtonStyles.primaryButton(height: 44),
                 child: const Text('Retry'),
               ),
@@ -268,13 +295,13 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
 
                   // Search area
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.white.withAlpha(30),
                       borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                      border: Border.all(
-                        color: AppColors.white.withAlpha(50),
-                      ),
+                      border: Border.all(color: AppColors.white.withAlpha(50)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -286,10 +313,12 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
                             size: 18,
                           ),
                           onPressed: () {
-                            setState(() => _showSearchField = !_showSearchField);
+                            setState(
+                              () => _showSearchField = !_showSearchField,
+                            );
                             if (!_showSearchField) {
                               _searchController.clear();
-                              ref.read(visualAdsSearchQueryProvider.notifier).state = '';
+                              _searchQuery = '';
                               _pageController.jumpToPage(0);
                               setState(() => _currentIndex = 0);
                             }
@@ -313,7 +342,7 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
                                 border: InputBorder.none,
                               ),
                               onChanged: (value) {
-                                ref.read(visualAdsSearchQueryProvider.notifier).state = value;
+                                _searchQuery = value;
                                 _pageController.jumpToPage(0);
                                 setState(() => _currentIndex = 0);
                               },
@@ -392,7 +421,9 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
                           color: (_currentIndex > 0 && !_isTransitioning)
                               ? AppColors.white.withAlpha(30)
                               : AppColors.white.withAlpha(15),
-                          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                          borderRadius: BorderRadius.circular(
+                            AppBorderRadius.md,
+                          ),
                           border: Border.all(
                             color: (_currentIndex > 0 && !_isTransitioning)
                                 ? AppColors.white.withAlpha(50)
@@ -419,8 +450,7 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
                             (index) => Container(
                               width: 8,
                               height: 8,
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 4),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: index == _currentIndex
@@ -435,12 +465,18 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
                       // Next Button
                       Container(
                         decoration: BoxDecoration(
-                          color: (_currentIndex < ads.length - 1 && !_isTransitioning)
+                          color:
+                              (_currentIndex < ads.length - 1 &&
+                                  !_isTransitioning)
                               ? AppColors.white.withAlpha(30)
                               : AppColors.white.withAlpha(15),
-                          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                          borderRadius: BorderRadius.circular(
+                            AppBorderRadius.md,
+                          ),
                           border: Border.all(
-                            color: (_currentIndex < ads.length - 1 && !_isTransitioning)
+                            color:
+                                (_currentIndex < ads.length - 1 &&
+                                    !_isTransitioning)
                                 ? AppColors.white.withAlpha(50)
                                 : AppColors.white.withAlpha(20),
                           ),
@@ -450,7 +486,9 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
                             Iconsax.arrow_right_3,
                             color: AppColors.white,
                           ),
-                          onPressed: (_currentIndex < ads.length - 1 && !_isTransitioning)
+                          onPressed:
+                              (_currentIndex < ads.length - 1 &&
+                                  !_isTransitioning)
                               ? _nextImage
                               : null,
                         ),

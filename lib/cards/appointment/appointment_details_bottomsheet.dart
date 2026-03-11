@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+
 import '../../models/appointment.dart';
 import '../../models/doctor.dart';
 import '../../providers/appointment_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../routes/app_router.dart';
 import '../../theme/app_theme.dart';
 
 class AppointmentDetailsBottomSheet extends ConsumerWidget {
@@ -20,14 +23,14 @@ class AppointmentDetailsBottomSheet extends ConsumerWidget {
 
   Color _getStatusColor(AppointmentStatus status) {
     switch (status) {
-      case AppointmentStatus.scheduled:
+      case AppointmentStatus.pending:
         return AppColors.primary;
+      case AppointmentStatus.ongoing:
+        return const Color(0xFF1565C0);
       case AppointmentStatus.completed:
         return AppColors.success;
       case AppointmentStatus.cancelled:
         return AppColors.error;
-      case AppointmentStatus.missed:
-        return AppColors.quaternary;
     }
   }
 
@@ -69,8 +72,10 @@ class AppointmentDetailsBottomSheet extends ConsumerWidget {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Iconsax.close_circle,
-                        color: AppColors.quaternary),
+                    icon: const Icon(
+                      Iconsax.close_circle,
+                      color: AppColors.quaternary,
+                    ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -116,13 +121,15 @@ class AppointmentDetailsBottomSheet extends ConsumerWidget {
                   children: [
                     Text(
                       doctor.name,
-                      style:
-                          AppTypography.bodyLarge.copyWith(color: AppColors.black),
+                      style: AppTypography.bodyLarge.copyWith(
+                        color: AppColors.black,
+                      ),
                     ),
                     Text(
                       doctor.specialization,
-                      style: AppTypography.body
-                          .copyWith(color: AppColors.quaternary),
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.quaternary,
+                      ),
                     ),
                   ],
                 ),
@@ -135,7 +142,9 @@ class AppointmentDetailsBottomSheet extends ConsumerWidget {
                 title: 'Date',
                 content: Text(
                   DateFormat('EEEE, MMMM dd, yyyy').format(appointment.date),
-                  style: AppTypography.bodyLarge.copyWith(color: AppColors.black),
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: AppColors.black,
+                  ),
                 ),
               ),
               const Divider(height: AppSpacing.xl),
@@ -146,21 +155,58 @@ class AppointmentDetailsBottomSheet extends ConsumerWidget {
                 title: 'Time',
                 content: Text(
                   appointment.time,
-                  style: AppTypography.bodyLarge.copyWith(color: AppColors.black),
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: AppColors.black,
+                  ),
                 ),
               ),
               const Divider(height: AppSpacing.xl),
 
-              // Message/Reason
+              // Place
               _buildInfoSection(
                 icon: Iconsax.message_text,
-                title: 'Appointment Reason',
+                title: 'Appointment Place',
                 content: Text(
                   appointment.message,
                   style: AppTypography.body.copyWith(color: AppColors.black),
                 ),
               ),
+              if (appointment.visualAds.isNotEmpty) ...[
+                const Divider(height: AppSpacing.xl),
+                _buildInfoSection(
+                  icon: Iconsax.image,
+                  title: 'Visual Ads',
+                  content: Text(
+                    appointment.visualAds
+                        .map((ad) => ad.medicineName)
+                        .join(', '),
+                    style: AppTypography.body.copyWith(color: AppColors.black),
+                  ),
+                ),
+              ],
               const SizedBox(height: AppSpacing.xxl),
+
+              if (appointment.status == AppointmentStatus.ongoing &&
+                  appointment.visualAds.isNotEmpty) ...[
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final encodedIds = appointment.visualAds
+                        .map((ad) => ad.id)
+                        .join(',');
+                    Navigator.of(context).pop();
+                    context.push('${AppRouter.visualAds}?adIds=$encodedIds');
+                  },
+                  style: AppButtonStyles.primaryButton(height: 46),
+                  icon: const Icon(Iconsax.play, color: AppColors.white),
+                  label: Text(
+                    'Present Visual Ads Now',
+                    style: AppTypography.buttonMedium.copyWith(
+                      color: AppColors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+              ],
 
               // Action Buttons
               Row(
@@ -201,7 +247,11 @@ class AppointmentDetailsBottomSheet extends ConsumerWidget {
                         );
                       },
                       style: AppButtonStyles.primaryButton(height: 44),
-                      icon: const Icon(Iconsax.edit, color: AppColors.white, size: 20),
+                      icon: const Icon(
+                        Iconsax.edit,
+                        color: AppColors.white,
+                        size: 20,
+                      ),
                       label: Text(
                         'Edit',
                         style: AppTypography.buttonMedium.copyWith(
@@ -260,9 +310,7 @@ class AppointmentDetailsBottomSheet extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: AppBorderRadius.lgRadius,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: AppBorderRadius.lgRadius),
         title: Text(
           'Delete Appointment',
           style: AppTypography.tagline.copyWith(color: AppColors.black),
@@ -289,13 +337,46 @@ class AppointmentDetailsBottomSheet extends ConsumerWidget {
               ),
             ),
             onPressed: () {
-              ref.read(appointmentProvider.notifier).deleteAppointment(appointment.id);
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Appointment deleted successfully'),
-                ),
-              );
+              final asmId = ref.read(authNotifierProvider).asmId;
+              if (asmId == null || asmId.trim().isEmpty) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please login again.')),
+                );
+                return;
+              }
+
+              ref
+                  .read(appointmentNotifierProvider.notifier)
+                  .deleteAppointment(
+                    asmId: asmId,
+                    appointmentId: appointment.id,
+                  )
+                  .then((_) {
+                    if (!context.mounted) {
+                      return;
+                    }
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Appointment deleted successfully'),
+                      ),
+                    );
+                  })
+                  .catchError((error) {
+                    if (!context.mounted) {
+                      return;
+                    }
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          error.toString().replaceFirst('Exception: ', ''),
+                        ),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  });
             },
             child: Text(
               'Delete',

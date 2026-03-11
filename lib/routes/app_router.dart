@@ -202,7 +202,15 @@ class AppRouter {
         ),
         GoRoute(
           path: AppRouter.visualAds,
-          builder: (context, state) => const VisualAdsScreen(),
+          builder: (context, state) {
+            final raw = state.uri.queryParameters['adIds'] ?? '';
+            final ids = raw
+                .split(',')
+                .map((it) => it.trim())
+                .where((it) => it.isNotEmpty)
+                .toSet();
+            return VisualAdsScreen(onlyAdIds: ids.isEmpty ? null : ids);
+          },
         ),
         GoRoute(
           path: AppRouter.monthPlans,
