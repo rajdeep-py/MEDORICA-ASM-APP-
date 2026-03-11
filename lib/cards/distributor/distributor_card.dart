@@ -25,7 +25,7 @@ class DistributorCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        margin: const EdgeInsets.only(bottom: AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
@@ -163,7 +163,6 @@ class DistributorCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
                 ],
               ),
             ),

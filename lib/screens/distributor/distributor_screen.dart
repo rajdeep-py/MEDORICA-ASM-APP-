@@ -52,76 +52,83 @@ class _DistributorScreenState extends ConsumerState<DistributorScreen> {
           titleText: 'Distributors',
           subtitleText: 'Manage your distributors',
         ),
-        body: Column(
-          children: [
-            // Search and Filter
-            DistributorSearchFilterCard(
-              onSearch: (query) {
-                setState(() {
-                  _searchQuery = query;
-                });
-              },
-              onFilterChange: (filter) {
-                // Handle filter changes
-              },
-            ),
-            // Distributor List
-            Expanded(
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : error != null && distributors.isEmpty
-                  ? _DistributorErrorState(
-                      message: error,
-                      onRetry: () {
-                        ref
-                            .read(distributorNotifierProvider.notifier)
-                            .loadDistributors(forceRefresh: true);
-                      },
-                    )
-                  : filteredDistributors.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Iconsax.box,
-                            size: 80,
-                            color: AppColors.primaryLight,
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'No Distributors Found',
-                            style: AppTypography.h3.copyWith(
-                              color: AppColors.quaternary,
+        body: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.screenPaddingHorizontal,
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: AppSpacing.lg),
+              // Search and Filter
+              DistributorSearchFilterCard(
+                onSearch: (query) {
+                  setState(() {
+                    _searchQuery = query;
+                  });
+                },
+                onFilterChange: (filter) {
+                  // Handle filter changes
+                },
+              ),
+              const SizedBox(height: AppSpacing.md),
+              // Distributor List
+              Expanded(
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : error != null && distributors.isEmpty
+                    ? _DistributorErrorState(
+                        message: error,
+                        onRetry: () {
+                          ref
+                              .read(distributorNotifierProvider.notifier)
+                              .loadDistributors(forceRefresh: true);
+                        },
+                      )
+                    : filteredDistributors.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Iconsax.box,
+                              size: 80,
+                              color: AppColors.primaryLight,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Distributors will appear here once available',
-                            style: AppTypography.body.copyWith(
-                              color: AppColors.quaternary,
+                            const SizedBox(height: 24),
+                            Text(
+                              'No Distributors Found',
+                              style: AppTypography.h3.copyWith(
+                                color: AppColors.quaternary,
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              'Distributors will appear here once available',
+                              style: AppTypography.body.copyWith(
+                                color: AppColors.quaternary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 100),
+                        itemCount: filteredDistributors.length,
+                        itemBuilder: (context, index) {
+                          final distributor = filteredDistributors[index];
+                          return DistributorCard(
+                            distributor: distributor,
+                            onTap: () {
+                              context.push(
+                                '/distributor-detail/${distributor.id}',
+                              );
+                            },
+                          );
+                        },
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 100),
-                      itemCount: filteredDistributors.length,
-                      itemBuilder: (context, index) {
-                        final distributor = filteredDistributors[index];
-                        return DistributorCard(
-                          distributor: distributor,
-                          onTap: () {
-                            context.push(
-                              '/distributor-detail/${distributor.id}',
-                            );
-                          },
-                        );
-                      },
-                    ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
         bottomNavigationBar: const MRBottomNavBar(currentIndex: 4),
       ),
