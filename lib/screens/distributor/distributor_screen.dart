@@ -34,9 +34,11 @@ class _DistributorScreenState extends ConsumerState<DistributorScreen> {
       _filteredDistributors = allDistributors;
     } else {
       _filteredDistributors = allDistributors
-          .where((d) =>
-              d.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              d.location.toLowerCase().contains(_searchQuery.toLowerCase()))
+          .where(
+            (d) =>
+                d.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                d.location.toLowerCase().contains(_searchQuery.toLowerCase()),
+          )
           .toList();
     }
   }
@@ -53,125 +55,75 @@ class _DistributorScreenState extends ConsumerState<DistributorScreen> {
         }
       },
       child: Scaffold(
-      appBar: const MRAppBar(
-        showBack: false,
-        showActions: false,
-        titleText: 'Distributors',
-        subtitleText: 'Manage your distributors',
-      ),
-      body: Column(
-        children: [
-          // Search and Filter
-          DistributorSearchFilterCard(
-            onSearch: (query) {
-              setState(() {
-                _searchQuery = query;
-                _updateFilteredList();
-              });
-            },
-            onFilterChange: (filter) {
-              // Handle filter changes
-            },
-          ),
-          // Distributor List
-          Expanded(
-            child: _filteredDistributors.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Iconsax.box,
-                          size: 80,
-                          color: AppColors.primaryLight,
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'No Distributors Found',
-                          style: AppTypography.h3.copyWith(
-                            color: AppColors.quaternary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Add your first distributor to get started',
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.quaternary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 100),
-                    itemCount: _filteredDistributors.length,
-                    itemBuilder: (context, index) {
-                      final distributor = _filteredDistributors[index];
-                      return DistributorCard(
-                        distributor: distributor,
-                        onTap: () {
-                          context.push(
-                            '/distributor-detail/${distributor.id}',
-                            extra: distributor,
-                          );
-                        },
-                        onEdit: () {
-                          context.push(
-                            '/add-edit-distributor/${distributor.id}',
-                            extra: distributor,
-                          );
-                        },
-                        onDelete: () {
-                          _showDeleteConfirmation(distributor);
-                        },
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.push('/add-edit-distributor');
-        },
-        elevation: 4,
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Iconsax.add, color: AppColors.white, size: 24),
-        label: Text(
-          'Add Distributor',
-          style: AppTypography.body.copyWith(
-            color: AppColors.white,
-            fontWeight: FontWeight.w700,
-          ),
+        appBar: const MRAppBar(
+          showBack: false,
+          showActions: false,
+          titleText: 'Distributors',
+          subtitleText: 'Manage your distributors',
         ),
-      ),
-      bottomNavigationBar: const MRBottomNavBar(currentIndex: 4),
-      ),
-    );
-  }
-
-  void _showDeleteConfirmation(Distributor distributor) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Distributor'),
-        content: Text('Are you sure you want to delete ${distributor.name}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              ref
-                  .read(distributorNotifierProvider.notifier)
-                  .deleteDistributor(distributor.id);
-              Navigator.pop(context);
-              setState(() => _updateFilteredList());
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
+        body: Column(
+          children: [
+            // Search and Filter
+            DistributorSearchFilterCard(
+              onSearch: (query) {
+                setState(() {
+                  _searchQuery = query;
+                  _updateFilteredList();
+                });
+              },
+              onFilterChange: (filter) {
+                // Handle filter changes
+              },
+            ),
+            // Distributor List
+            Expanded(
+              child: _filteredDistributors.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Iconsax.box,
+                            size: 80,
+                            color: AppColors.primaryLight,
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'No Distributors Found',
+                            style: AppTypography.h3.copyWith(
+                              color: AppColors.quaternary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Distributors will appear here once available',
+                            style: AppTypography.body.copyWith(
+                              color: AppColors.quaternary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 100),
+                      itemCount: _filteredDistributors.length,
+                      itemBuilder: (context, index) {
+                        final distributor = _filteredDistributors[index];
+                        return DistributorCard(
+                          distributor: distributor,
+                          onTap: () {
+                            context.push(
+                              '/distributor-detail/${distributor.id}',
+                              extra: distributor,
+                            );
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: const MRBottomNavBar(currentIndex: 4),
       ),
     );
   }

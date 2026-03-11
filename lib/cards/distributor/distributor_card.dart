@@ -7,15 +7,11 @@ import '../../theme/app_theme.dart';
 class DistributorCard extends StatelessWidget {
   final Distributor distributor;
   final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
 
   const DistributorCard({
     super.key,
     required this.distributor,
     required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
   });
 
   @override
@@ -50,7 +46,8 @@ class DistributorCard extends StatelessWidget {
                 ),
                 color: AppColors.primaryLight,
               ),
-              child: distributor.photoUrl != null &&
+              child:
+                  distributor.photoUrl != null &&
                       distributor.photoUrl!.isNotEmpty
                   ? Stack(
                       children: [
@@ -79,62 +76,15 @@ class DistributorCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name and Actions Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          distributor.name,
-                          style: AppTypography.h3.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 80,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            GestureDetector(
-                              onTap: onEdit,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryLight,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Iconsax.edit,
-                                  color: AppColors.primary,
-                                  size: 18,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: onDelete,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withAlpha(200),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Iconsax.trash,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  Text(
+                    distributor.name,
+                    style: AppTypography.h3.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 10),
                   // Location
@@ -163,11 +113,7 @@ class DistributorCard extends StatelessWidget {
                   // Phone
                   Row(
                     children: [
-                      Icon(
-                        Iconsax.call,
-                        color: AppColors.quaternary,
-                        size: 18,
-                      ),
+                      Icon(Iconsax.call, color: AppColors.quaternary, size: 18),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -198,11 +144,7 @@ class DistributorCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Iconsax.image,
-              size: 56,
-              color: AppColors.primary,
-            ),
+            Icon(Iconsax.image, size: 56, color: AppColors.primary),
             const SizedBox(height: 8),
             Text(
               'No Photo',

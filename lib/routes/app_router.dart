@@ -12,7 +12,6 @@ import '../screens/team/team_members_screen.dart';
 import '../screens/team/team_member_detail_screen.dart';
 import '../screens/distributor/distributor_screen.dart';
 import '../screens/distributor/distributor_detail_screen.dart';
-import '../screens/distributor/add_edit_distributor_screen.dart';
 import '../screens/chemist_shop/chemist_shop_screen.dart';
 import '../screens/chemist_shop/chemist_shop_detail_screen.dart';
 import '../screens/chemist_shop/add_edit_chemist_shop_screen.dart';
@@ -43,7 +42,6 @@ class AppRouter {
   static const String teamMemberDetail = '/team-member-detail/:memberId';
   static const String distributors = '/distributors';
   static const String distributorDetail = '/distributor-detail/:distributorId';
-  static const String addEditDistributor = '/add-edit-distributor';
   static const String chemistShops = '/chemist-shops';
   static const String chemistShopDetail = '/chemist-shop-detail/:shopId';
   static const String addEditChemistShop = '/add-edit-chemist-shop';
@@ -114,20 +112,6 @@ class AppRouter {
                 : const Scaffold(
                     body: Center(child: Text('Distributor not found')),
                   );
-          },
-        ),
-        GoRoute(
-          path: AppRouter.addEditDistributor,
-          builder: (context, state) {
-            final distributor = state.extra as Distributor?;
-            return AddEditDistributorScreen(distributor: distributor);
-          },
-        ),
-        GoRoute(
-          path: '/add-edit-distributor/:distributorId',
-          builder: (context, state) {
-            final distributor = state.extra as Distributor?;
-            return AddEditDistributorScreen(distributor: distributor);
           },
         ),
         GoRoute(
