@@ -1,32 +1,58 @@
 import 'dart:async';
 
+import 'package:open_filex/open_filex.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../models/asm.dart';
+import '../models/salary_slip.dart';
 import '../notifiers/auth_notifier.dart';
 import '../services/profile/profile_services.dart';
+import '../services/salary_slip/salary_slip_services.dart';
 
 /// Profile state class
 class ProfileState {
   final bool isLoading;
+  final bool isSalarySlipDownloading;
   final ASM? profile;
+  final SalarySlip? salarySlip;
   final String? error;
+  final String? salarySlipError;
 
-  ProfileState({this.isLoading = false, this.profile, this.error});
+  ProfileState({
+    this.isLoading = false,
+    this.isSalarySlipDownloading = false,
+    this.profile,
+    this.salarySlip,
+    this.error,
+    this.salarySlipError,
+  });
 
-  ProfileState copyWith({bool? isLoading, ASM? profile, String? error}) {
+  ProfileState copyWith({
+    bool? isLoading,
+    bool? isSalarySlipDownloading,
+    ASM? profile,
+    SalarySlip? salarySlip,
+    String? error,
+    String? salarySlipError,
+  }) {
     return ProfileState(
       isLoading: isLoading ?? this.isLoading,
+      isSalarySlipDownloading:
+          isSalarySlipDownloading ?? this.isSalarySlipDownloading,
       profile: profile ?? this.profile,
+      salarySlip: salarySlip ?? this.salarySlip,
       error: error,
+      salarySlipError: salarySlipError,
     );
   }
 }
 
 /// Profile notifier for managing profile state
 class ProfileNotifier extends StateNotifier<ProfileState> {
-  ProfileNotifier(this._profileServices) : super(ProfileState());
+  ProfileNotifier(this._profileServices, this._salarySlipServices)
+    : super(ProfileState());
 
   final ProfileServices _profileServices;
+  final SalarySlipServices _salarySlipServices;
   String? _asmId;
 
   /// Set profile data
@@ -126,6 +152,51 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       return true;
     } catch (error) {
       state = state.copyWith(isLoading: false, error: _readErrorMessage(error));
+      return false;
+    }
+  }
+
+  Future<bool> downloadSalarySlipForCurrentAsm() async {
+    final asmId = _asmId ?? state.profile?.asmId ?? state.profile?.id;
+    if (asmId == null || asmId.isEmpty) {
+      state = state.copyWith(
+        salarySlipError: 'ASM ID is missing. Please log in again.',
+      );
+      return false;
+    }
+
+    state = state.copyWith(
+      isSalarySlipDownloading: true,
+      salarySlipError: null,
+    );
+
+    try {
+      final slip = await _salarySlipServices.downloadSalarySlipByAsmId(asmId);
+      final filePath = slip.localFilePath;
+      if (filePath == null || filePath.trim().isEmpty) {
+        throw Exception('Downloaded file path is missing.');
+      }
+
+      final openResult = await OpenFilex.open(filePath);
+      if (openResult.type != ResultType.done) {
+        throw Exception(
+          openResult.message.isNotEmpty
+              ? openResult.message
+              : 'Failed to open downloaded salary slip.',
+        );
+      }
+
+      state = state.copyWith(
+        isSalarySlipDownloading: false,
+        salarySlip: slip,
+        salarySlipError: null,
+      );
+      return true;
+    } catch (error) {
+      state = state.copyWith(
+        isSalarySlipDownloading: false,
+        salarySlipError: _readErrorMessage(error),
+      );
       return false;
     }
   }

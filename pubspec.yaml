@@ -67,6 +67,9 @@ dependencies:
   # For storing downloaded files in app documents directory
   path_provider: ^2.1.5
 
+  # Open downloaded documents with installed apps
+  open_filex: ^4.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

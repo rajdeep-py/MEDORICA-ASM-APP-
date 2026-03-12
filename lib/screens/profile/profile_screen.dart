@@ -33,6 +33,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final profileState = ref.watch(profileNotifierProvider);
+    final isSalarySlipDownloading = ref.watch(isSalarySlipDownloadingProvider);
 
     if (profileState.isLoading && profileState.profile == null) {
       return const Scaffold(
@@ -73,13 +74,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       );
                     },
                     onSalarySlip: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Salary Slip download feature coming soon',
-                          ),
-                        ),
-                      );
+                      if (isSalarySlipDownloading) {
+                        return;
+                      }
+
+                      ref
+                          .read(profileNotifierProvider.notifier)
+                          .downloadSalarySlipForCurrentAsm()
+                          .then((success) {
+                            if (!context.mounted) {
+                              return;
+                            }
+
+                            final latestState = ref.read(
+                              profileNotifierProvider,
+                            );
+                            final failureMessage = latestState.salarySlipError;
+                            final successFile =
+                                latestState.salarySlip?.localFilePath;
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  success
+                                      ? 'Salary slip downloaded and opened${successFile != null ? ': $successFile' : ''}'
+                                      : (failureMessage ??
+                                            'Unable to download salary slip right now.'),
+                                ),
+                              ),
+                            );
+                          });
                     },
                     onNotifications: () =>
                         context.push(AppRouter.notifications),

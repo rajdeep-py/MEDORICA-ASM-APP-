@@ -19,6 +19,10 @@ class ApiUrl {
   // Notification Endpoints
   static const String notificationsGetAllAsm = '/notifications/get-all/asm';
 
+  // Salary Slip Endpoints
+  static String salarySlipDownloadByAsmId(String asmId) =>
+      '/salary-slip/asm/download-by-asm/$asmId';
+
   // Monthly Plan Endpoints
   static const String monthlyPlanPost = '/monthly-plan/post';
   static const String monthlyPlanGetAll = '/monthly-plan/get-all';
