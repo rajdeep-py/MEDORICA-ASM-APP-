@@ -16,6 +16,9 @@ class ApiUrl {
   static const String visualAdsGetAll = '/visual-ads/get-all';
   static String visualAdsGetById(String adId) => '/visual-ads/get-by/$adId';
 
+  // Notification Endpoints
+  static const String notificationsGetAllAsm = '/notifications/get-all/asm';
+
   // Helper method to get full URL
   static String getFullUrl(String endpoint) {
     final trimmed = endpoint.trim();
