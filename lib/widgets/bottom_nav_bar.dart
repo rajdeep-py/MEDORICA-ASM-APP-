@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
@@ -63,25 +62,15 @@ class _MRBottomNavBarState extends State<MRBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final navItems = [
-      _NavItem(label: 'Home',
-       icon: Iconsax.home,
-        filledIcon: Iconsax.home5
-      ),
-      _NavItem(label: 'My Team', 
-      icon: FontAwesomeIcons.userGroup, 
-      filledIcon: FontAwesomeIcons.userGroup
-      ),
-      
+      _NavItem(label: 'Home', icon: Iconsax.home, filledIcon: Iconsax.home5),
+      _NavItem(label: 'My Team', icon: Icons.groups, filledIcon: Icons.groups),
+
       _NavItem(
         label: 'Orders',
         icon: Iconsax.receipt,
         filledIcon: Iconsax.receipt_15,
       ),
-      _NavItem(
-        label: 'Shops',
-        icon: Iconsax.shop,
-        filledIcon: Iconsax.shop,
-      ),
+      _NavItem(label: 'Shops', icon: Iconsax.shop, filledIcon: Iconsax.shop),
       _NavItem(
         label: 'Distributors',
         icon: Iconsax.truck,
@@ -89,8 +78,8 @@ class _MRBottomNavBarState extends State<MRBottomNavBar> {
       ),
       _NavItem(
         label: 'Doctors',
-        icon: FontAwesomeIcons.userDoctor,
-        filledIcon: FontAwesomeIcons.userDoctor,
+        icon: Icons.medical_services,
+        filledIcon: Icons.medical_services,
       ),
       _NavItem(
         label: 'Appointments',
