@@ -8,11 +8,20 @@ import '../../routes/app_router.dart';
 class MRQuickActionsCard extends StatelessWidget {
   const MRQuickActionsCard({super.key});
 
-  Widget _actionTile(BuildContext context, IconData icon, String label, {VoidCallback? onTap}) {
+  Widget _actionTile(
+    BuildContext context,
+    IconData icon,
+    String label, {
+    VoidCallback? onTap,
+  }) {
     return InkWell(
-      onTap: onTap ?? () {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$label tapped')));
-      },
+      onTap:
+          onTap ??
+          () {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('$label tapped')));
+          },
       borderRadius: BorderRadius.circular(AppBorderRadius.md),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -25,7 +34,9 @@ class MRQuickActionsCard extends StatelessWidget {
               color: AppColors.primaryLight,
               borderRadius: BorderRadius.circular(AppBorderRadius.md),
             ),
-            child: Center(child: Icon(icon, color: AppColors.primary, size: 20)),
+            child: Center(
+              child: Icon(icon, color: AppColors.primary, size: 20),
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
           SizedBox(
@@ -46,14 +57,46 @@ class MRQuickActionsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      [FontAwesomeIcons.userGroup, 'Team'],
-      [Iconsax.shopping_cart, 'Orders'],
-      [Iconsax.location, 'Set Targets'],
-      [Iconsax.presention_chart, 'Visual Ads'],
-      [Iconsax.truck, 'Distributors'],
-      [Iconsax.wallet, 'Salary Slip'],
-      [Iconsax.shop, 'Chemists'],
-      [Iconsax.user, 'Profile'],
+      (
+        icon: FontAwesomeIcons.userGroup,
+        label: 'Team',
+        onTap: () => context.push(AppRouter.myTeam),
+      ),
+      (
+        icon: Iconsax.shopping_cart,
+        label: 'Orders',
+        onTap: () => context.push(AppRouter.orders),
+      ),
+      (
+        icon: Iconsax.location,
+        label: 'Set Targets',
+        onTap: () => context.push(AppRouter.monthPlans),
+      ),
+      (
+        icon: Iconsax.presention_chart,
+        label: 'Visual Ads',
+        onTap: () => context.push(AppRouter.visualAds),
+      ),
+      (
+        icon: Iconsax.truck,
+        label: 'Distributors',
+        onTap: () => context.push(AppRouter.distributors),
+      ),
+      (
+        icon: Iconsax.wallet,
+        label: 'Salary Slip',
+        onTap: () => context.push(AppRouter.profile),
+      ),
+      (
+        icon: Iconsax.shop,
+        label: 'Chemists',
+        onTap: () => context.push(AppRouter.chemistShops),
+      ),
+      (
+        icon: Iconsax.user,
+        label: 'Profile',
+        onTap: () => context.push(AppRouter.profile),
+      ),
     ];
 
     return Container(
@@ -76,7 +119,10 @@ class MRQuickActionsCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text('Quick Actions', style: AppTypography.h3.copyWith(color: AppColors.primary)),
+                Text(
+                  'Quick Actions',
+                  style: AppTypography.h3.copyWith(color: AppColors.primary),
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
@@ -86,21 +132,16 @@ class MRQuickActionsCard extends StatelessWidget {
               crossAxisCount: 4,
               mainAxisSpacing: AppSpacing.md,
               crossAxisSpacing: AppSpacing.md,
-              children: [
-                _actionTile(context, items[0][0] as IconData, items[0][1] as String),
-                _actionTile(context, items[1][0] as IconData, items[1][1] as String),
-                _actionTile(context, items[2][0] as IconData, items[2][1] as String),
-                _actionTile(
-                  context,
-                  items[3][0] as IconData,
-                  items[3][1] as String,
-                  onTap: () => context.push(AppRouter.visualAds),
-                ),
-                _actionTile(context, items[4][0] as IconData, items[4][1] as String),
-                _actionTile(context, items[5][0] as IconData, items[5][1] as String),
-                _actionTile(context, items[6][0] as IconData, items[6][1] as String),
-                _actionTile(context, items[7][0] as IconData, items[7][1] as String),
-              ],
+              children: items
+                  .map(
+                    (item) => _actionTile(
+                      context,
+                      item.icon,
+                      item.label,
+                      onTap: item.onTap,
+                    ),
+                  )
+                  .toList(),
             ),
           ],
         ),
