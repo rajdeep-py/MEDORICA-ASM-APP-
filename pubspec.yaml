@@ -70,6 +70,9 @@ dependencies:
   # Open downloaded documents with installed apps
   open_filex: ^4.5.0
 
+  # Internet connectivity monitoring
+  connectivity_plus: ^6.1.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

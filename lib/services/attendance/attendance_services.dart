@@ -132,7 +132,7 @@ class AttendanceServices {
   }) async {
     try {
       final formData = FormData.fromMap({
-        if (attendanceStatus != null) 'attendance_status': attendanceStatus,
+        'attendance_status': ?attendanceStatus,
         if (checkInTime != null) 'check_in_time': checkInTime.toIso8601String(),
         if (checkOutTime != null)
           'check_out_time': checkOutTime.toIso8601String(),
