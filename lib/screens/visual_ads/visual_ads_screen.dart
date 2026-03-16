@@ -273,6 +273,7 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
                 scaleEnabled: true,
                 minScale: 1.0,
                 maxScale: 4.0,
+                clipBehavior: Clip.hardEdge,
                 child: Container(
                   color: AppColors.black,
                   child: _buildAdImage(ad),
@@ -386,31 +387,34 @@ class _VisualAdsScreenState extends ConsumerState<VisualAdsScreen> {
           Positioned(
             right: AppSpacing.lg,
             top: 90,
-            child: Column(
-              children: [
-                _ZoomButton(icon: Iconsax.add, onTap: _zoomIn),
-                const SizedBox(height: AppSpacing.sm),
-                _ZoomButton(icon: Iconsax.minus, onTap: _zoomOut),
-                const SizedBox(height: AppSpacing.sm),
-                _ZoomButton(icon: Iconsax.refresh, onTap: _resetZoom),
-                const SizedBox(height: AppSpacing.md),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withAlpha(30),
-                    borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                  ),
-                  child: Text(
-                    'Scale: ${_currentScale.toStringAsFixed(2)}x',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.white,
+            child: IgnorePointer(
+              ignoring: false,
+              child: Column(
+                children: [
+                  _ZoomButton(icon: Iconsax.add, onTap: _zoomIn),
+                  const SizedBox(height: AppSpacing.sm),
+                  _ZoomButton(icon: Iconsax.minus, onTap: _zoomOut),
+                  const SizedBox(height: AppSpacing.sm),
+                  _ZoomButton(icon: Iconsax.refresh, onTap: _resetZoom),
+                  const SizedBox(height: AppSpacing.md),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withAlpha(30),
+                      borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                    ),
+                    child: Text(
+                      'Scale: ${_currentScale.toStringAsFixed(2)}x',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.white,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
