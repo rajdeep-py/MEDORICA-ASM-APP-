@@ -455,12 +455,33 @@ class _StatusUpdateSectionState extends State<_StatusUpdateSection> {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        DropdownButton<AppointmentStatus>(
+        DropdownButtonFormField<AppointmentStatus>(
           value: _selectedStatus,
+          decoration: InputDecoration(
+            labelText: 'Select Status',
+            labelStyle: AppTypography.body.copyWith(color: AppColors.primary),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primaryLight),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primaryLight),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary),
+            ),
+            filled: true,
+            fillColor: AppColors.surface,
+          ),
+          style: AppTypography.body.copyWith(color: AppColors.black),
+          dropdownColor: AppColors.surface,
           items: AppointmentStatus.values.map((status) {
             return DropdownMenuItem<AppointmentStatus>(
               value: status,
-              child: Text(status.displayName),
+              child: Text(status.displayName, style: AppTypography.body),
             );
           }).toList(),
           onChanged: (newStatus) {
