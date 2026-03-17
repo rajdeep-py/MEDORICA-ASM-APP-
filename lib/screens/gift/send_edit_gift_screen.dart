@@ -6,6 +6,8 @@ import '../../providers/gift_provider.dart';
 import '../../providers/doctor_provider.dart';
 
 import '../../widgets/app_bar.dart';
+import 'package:iconsax/iconsax.dart';
+import '../../theme/app_theme.dart';
 
 class SendEditGiftScreen extends ConsumerStatefulWidget {
   final GiftApplication? application;
@@ -57,74 +59,235 @@ class _SendEditGiftScreenState extends ConsumerState<SendEditGiftScreen> {
       body: isLoading || _submitting
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Form(
                 key: _formKey,
                 child: ListView(
                   children: [
-                    DropdownButtonFormField<String>(
-                      value: _doctorId,
-                      decoration: const InputDecoration(labelText: 'Doctor'),
-                      items: doctors
-                          .map((d) => DropdownMenuItem(
-                                value: d.id,
-                                child: Text(d.name),
-                              ))
-                          .toList(),
-                      onChanged: (val) => setState(() => _doctorId = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Select a doctor' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      value: _giftId,
-                      decoration: const InputDecoration(labelText: 'Gift Item'),
-                      items: gifts
-                          .map((g) => DropdownMenuItem(
-                                value: g.giftId,
-                                child: Text(g.productName),
-                              ))
-                          .toList(),
-                      onChanged: (val) => setState(() => _giftId = val),
-                      validator: (val) => val == null ? 'Select a gift item' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    InkWell(
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: _giftDate ?? DateTime.now(),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2100),
-                        );
-                        if (picked != null) setState(() => _giftDate = picked);
-                      },
-                      child: InputDecorator(
-                        decoration: const InputDecoration(labelText: 'Gift Date'),
-                        child: Text(_giftDate != null
-                            ? _giftDate!.toLocal().toString().split(' ').first
-                            : 'Select date'),
+                    Container(
+                      decoration: AppCardStyles.inputFieldCard(),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _doctorId,
+                        decoration: InputDecoration(
+                          labelText: 'Doctor',
+                          prefixIcon: const Icon(Iconsax.user, color: AppColors.primary),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.surface200,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                        ),
+                        icon: const Icon(Iconsax.arrow_down_1, color: AppColors.primary),
+                        dropdownColor: AppColors.white,
+                        style: AppTypography.bodyLarge.copyWith(color: AppColors.primary),
+                        items: doctors
+                            .map((d) => DropdownMenuItem(
+                                  value: d.id,
+                                  child: Row(
+                                    children: [
+                                      const Icon(Iconsax.user, size: 18, color: AppColors.primary),
+                                      SizedBox(width: 8),
+                                      Text(d.name),
+                                    ],
+                                  ),
+                                ))
+                            .toList(),
+                        onChanged: (val) => setState(() => _doctorId = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Select a doctor' : null,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      initialValue: _occasion,
-                      decoration: const InputDecoration(labelText: 'Occasion'),
-                      onChanged: (val) => _occasion = val,
+                    Container(
+                      decoration: AppCardStyles.inputFieldCard(),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: DropdownButtonFormField<int>(
+                        initialValue: _giftId,
+                        decoration: InputDecoration(
+                          labelText: 'Gift Item',
+                          prefixIcon: const Icon(Iconsax.gift, color: AppColors.primary),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.surface200,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                        ),
+                        icon: const Icon(Iconsax.arrow_down_1, color: AppColors.primary),
+                        dropdownColor: AppColors.white,
+                        style: AppTypography.bodyLarge.copyWith(color: AppColors.primary),
+                        items: gifts
+                            .map((g) => DropdownMenuItem(
+                                  value: g.giftId,
+                                  child: Row(
+                                    children: [
+                                      const Icon(Iconsax.gift, size: 18, color: AppColors.primary),
+                                      SizedBox(width: 8),
+                                      Text(g.productName),
+                                    ],
+                                  ),
+                                ))
+                            .toList(),
+                        onChanged: (val) => setState(() => _giftId = val),
+                        validator: (val) => val == null ? 'Select a gift item' : null,
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      initialValue: _message,
-                      decoration: const InputDecoration(labelText: 'Message'),
-                      onChanged: (val) => _message = val,
+                    Container(
+                      decoration: AppCardStyles.inputFieldCard(),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _giftDate ?? DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) setState(() => _giftDate = picked);
+                        },
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'Gift Date',
+                            prefixIcon: const Icon(Iconsax.calendar, color: AppColors.primary),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                            ),
+                            filled: true,
+                            fillColor: AppColors.surface200,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                          ),
+                          child: Text(
+                            _giftDate != null
+                                ? _giftDate!.toLocal().toString().split(' ').first
+                                : 'Select date',
+                            style: AppTypography.bodyLarge.copyWith(
+                              color: _giftDate != null ? AppColors.primary : AppColors.quaternary,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      initialValue: _remarks,
-                      decoration: const InputDecoration(labelText: 'Remarks'),
-                      onChanged: (val) => _remarks = val,
+                    Container(
+                      decoration: AppCardStyles.inputFieldCard(),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: TextFormField(
+                        initialValue: _occasion,
+                        decoration: InputDecoration(
+                          labelText: 'Occasion',
+                          prefixIcon: const Icon(Iconsax.star, color: AppColors.primary),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.surface200,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                        ),
+                        style: AppTypography.bodyLarge.copyWith(color: AppColors.primary),
+                        onChanged: (val) => _occasion = val,
+                      ),
                     ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
+                    Container(
+                      decoration: AppCardStyles.inputFieldCard(),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: TextFormField(
+                        initialValue: _message,
+                        minLines: 3,
+                        maxLines: 6,
+                        decoration: InputDecoration(
+                          labelText: 'Message',
+                          prefixIcon: const Icon(Iconsax.message, color: AppColors.primary),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.surface200,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                        ),
+                        style: AppTypography.bodyLarge.copyWith(color: AppColors.primary),
+                        onChanged: (val) => _message = val,
+                      ),
+                    ),
+                    Container(
+                      decoration: AppCardStyles.inputFieldCard(),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: TextFormField(
+                        initialValue: _remarks,
+                        minLines: 3,
+                        maxLines: 6,
+                        decoration: InputDecoration(
+                          labelText: 'Remarks',
+                          prefixIcon: const Icon(Iconsax.note, color: AppColors.primary),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.divider, width: 1.2),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.surface200,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                        ),
+                        style: AppTypography.bodyLarge.copyWith(color: AppColors.primary),
+                        onChanged: (val) => _remarks = val,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    ElevatedButton.icon(
+                      style: AppButtonStyles.primaryButton(),
+                      icon: Icon(widget.application == null ? Iconsax.send_2 : Iconsax.edit, size: 20),
+                      label: Text(widget.application == null ? 'Request Gift' : 'Update Request'),
                       onPressed: () async {
                         if (!_formKey.currentState!.validate()) return;
                         setState(() => _submitting = true);
@@ -157,7 +320,6 @@ class _SendEditGiftScreenState extends ConsumerState<SendEditGiftScreen> {
                           if (mounted) setState(() => _submitting = false);
                         }
                       },
-                      child: Text(widget.application == null ? 'Request Gift' : 'Update Request'),
                     ),
                   ],
                 ),
