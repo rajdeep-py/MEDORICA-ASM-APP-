@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/gift.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/gift_provider.dart';
 import '../../providers/doctor_provider.dart';
-import '../../providers/auth_provider.dart';
+
+import '../../widgets/app_bar.dart';
 
 class SendEditGiftScreen extends ConsumerStatefulWidget {
   final GiftApplication? application;
@@ -46,8 +48,11 @@ class _SendEditGiftScreenState extends ConsumerState<SendEditGiftScreen> {
     final _ = ref.watch(authNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.application == null ? 'Request Gift' : 'Edit Gift Request'),
+      appBar: MRAppBar(
+        showBack: true,
+        showActions: false,
+        titleText: widget.application == null ? 'Request Gift' : 'Edit Gift Request',
+        subtitleText: 'Fill the details to ${widget.application == null ? 'request' : 'edit'} a gift',
       ),
       body: isLoading || _submitting
           ? const Center(child: CircularProgressIndicator())
