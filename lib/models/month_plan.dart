@@ -68,25 +68,28 @@ class MemberDayPlan {
 class MonthlyPlanCreatePayload {
   final String asmId;
   final int teamId;
+  final String mrId;
   final DateTime planDate;
   final String status;
-  final List<MemberDayPlan> memberDayPlans;
+  final List<PlanStep> activities;
 
   const MonthlyPlanCreatePayload({
     required this.asmId,
     required this.teamId,
+    required this.mrId,
     required this.planDate,
     this.status = 'draft',
-    this.memberDayPlans = const [],
+    this.activities = const [],
   });
 
   Map<String, dynamic> toJson() {
     return {
       'asm_id': asmId,
       'team_id': teamId,
+      'mr_id': mrId,
       'plan_date': _dateOnly(planDate),
       'status': status,
-      'member_day_plans': memberDayPlans.map((e) => e.toJson()).toList(),
+      'activities': activities.map((e) => e.toActivityJson()).toList(),
     };
   }
 }
@@ -128,49 +131,53 @@ class MonthPlanEntry {
     final date = _parseDate(json['plan_date']) ?? DateTime.now();
     final createdAt = _parseDateTime(json['created_at']);
     final updatedAt = _parseDateTime(json['updated_at']);
-    final plans = json['member_day_plans'];
-
-    if (plans is! List) {
-      return const [];
-    }
-
-    return plans.whereType<Map<String, dynamic>>().map((memberJson) {
-      final member = MemberDayPlan.fromJson(memberJson);
-      return MonthPlanEntry(
-        id: '${planId ?? ''}_${member.mrId}',
+    final mrId = _readString(json['mr_id']) ?? '';
+    final activitiesRaw = json['activities'];
+    final steps = activitiesRaw is List
+        ? activitiesRaw.whereType<Map<String, dynamic>>().map(PlanStep.fromActivityJson).toList()
+        : const <PlanStep>[];
+    return [
+      MonthPlanEntry(
+        id: '${planId ?? ''}_$mrId',
         planId: planId,
         asmId: asmId,
         teamId: teamId,
         status: status,
-        memberId: member.mrId,
-        memberName: member.mrName,
+        memberId: mrId,
+        memberName: null,
         date: date,
-        steps: member.activities,
+        steps: steps,
         createdAt: createdAt,
         updatedAt: updatedAt,
-      );
-    }).toList();
+      ),
+    ];
   }
 
   factory MonthPlanEntry.fromMrDayPlanJson(Map<String, dynamic> json) {
     final planId = _toIntOrNull(json['id']);
-    final mrPlan = json['mr_plan'];
-    final member = mrPlan is Map<String, dynamic>
-        ? MemberDayPlan.fromJson(mrPlan)
-        : const MemberDayPlan(mrId: '');
-
+    final asmId = _readString(json['asm_id']) ?? '';
+    final teamId = _toIntOrNull(json['team_id']);
+    final status = _readString(json['status']) ?? 'draft';
+    final date = _parseDate(json['plan_date']) ?? DateTime.now();
+    final createdAt = _parseDateTime(json['created_at']);
+    final updatedAt = _parseDateTime(json['updated_at']);
+    final mrId = _readString(json['mr_id']) ?? '';
+    final activitiesRaw = json['activities'];
+    final steps = activitiesRaw is List
+        ? activitiesRaw.whereType<Map<String, dynamic>>().map(PlanStep.fromActivityJson).toList()
+        : const <PlanStep>[];
     return MonthPlanEntry(
-      id: '${planId ?? ''}_${member.mrId}',
+      id: '${planId ?? ''}_$mrId',
       planId: planId,
-      asmId: _readString(json['asm_id']) ?? '',
-      teamId: _toIntOrNull(json['team_id']),
-      status: _readString(json['status']) ?? 'draft',
-      memberId: member.mrId,
-      memberName: member.mrName,
-      date: _parseDate(json['plan_date']) ?? DateTime.now(),
-      steps: member.activities,
-      createdAt: _parseDateTime(json['created_at']),
-      updatedAt: _parseDateTime(json['updated_at']),
+      asmId: asmId,
+      teamId: teamId,
+      status: status,
+      memberId: mrId,
+      memberName: null,
+      date: date,
+      steps: steps,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
     );
   }
 

@@ -211,11 +211,10 @@ class MonthPlanNotifier extends StateNotifier<MonthPlanState> {
     final payload = MonthlyPlanCreatePayload(
       asmId: _activeAsmId!,
       teamId: parsedTeamId,
+      mrId: memberId,
       planDate: date,
       status: status,
-      memberDayPlans: [
-        MemberDayPlan(mrId: memberId, mrName: memberName, activities: steps),
-      ],
+      activities: steps,
     );
 
     try {

@@ -316,16 +316,11 @@ class _CreateEditPlanScreenState extends ConsumerState<CreateEditPlanScreen> {
         memberId: selectedMemberId,
         steps: List.from(_steps),
       );
-      // Prepare payload for update
+      // Prepare payload for update (new structure)
       final payload = {
         'status': existing.status,
-        'member_day_plans': [
-          {
-            'mr_id': updated.memberId,
-            'mr_name': existing.memberName,
-            'activities': updated.steps.map((s) => s.toActivityJson()).toList(),
-          }
-        ],
+        'mr_id': updated.memberId,
+        'activities': updated.steps.map((s) => s.toActivityJson()).toList(),
       };
       try {
         await notifier.updatePlanById(existing.planId?.toString() ?? '', payload);

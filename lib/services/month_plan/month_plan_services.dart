@@ -52,7 +52,7 @@ class MonthPlanServices {
 
       final entries = MonthPlanEntry.listFromMonthlyPlanJson(data);
       for (final entry in entries) {
-        if (entry.memberId == payload.memberDayPlans.first.mrId) {
+        if (entry.memberId == payload.mrId) {
           return entry;
         }
       }
