@@ -48,15 +48,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     ]);
 
     if (!mounted) {
+      debugPrint('SplashScreen: Not mounted, abort navigation');
       return;
     }
 
-    final authState = ref.read(authNotifierProvider);
-    if (authState.isAuthenticated && (authState.asmId?.isNotEmpty ?? false)) {
-      context.go(AppRouter.home);
-    } else {
-      context.go(AppRouter.login);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = ref.read(authNotifierProvider);
+      debugPrint('SplashScreen: Navigation triggered, isAuthenticated=${authState.isAuthenticated}, asmId=${authState.asmId}');
+      if (authState.isAuthenticated && (authState.asmId?.isNotEmpty ?? false)) {
+        context.go(AppRouter.home);
+      } else {
+        context.go(AppRouter.login);
+      }
+    });
   }
 
   @override
@@ -78,6 +82,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset('assets/logo/logo.png', width: 400, height: 400),
+                const SizedBox(height: 24),
+                // Debug info for troubleshooting stuck splash
+                Builder(builder: (context) {
+                  final authState = ref.read(authNotifierProvider);
+                  return Column(
+                    children: [
+                      Text('Debug: isAuthenticated=${authState.isAuthenticated}', style: TextStyle(color: Colors.white)),
+                      Text('Debug: asmId=${authState.asmId}', style: TextStyle(color: Colors.white)),
+                    ],
+                  );
+                }),
               ],
             ),
           ),
