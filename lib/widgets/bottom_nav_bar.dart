@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
@@ -68,8 +67,8 @@ class _MRBottomNavBarState extends State<MRBottomNavBar> {
         filledIcon: Iconsax.home5
       ),
       _NavItem(label: 'My Team', 
-      icon: FontAwesomeIcons.userGroup, 
-      filledIcon: FontAwesomeIcons.userGroup
+      icon: Iconsax.user_octagon5, 
+      filledIcon: Iconsax.user_octagon5
       ),
       
       _NavItem(
@@ -89,8 +88,8 @@ class _MRBottomNavBarState extends State<MRBottomNavBar> {
       ),
       _NavItem(
         label: 'Doctors',
-        icon: FontAwesomeIcons.userDoctor,
-        filledIcon: FontAwesomeIcons.userDoctor,
+        icon: Iconsax.user5,
+        filledIcon: Iconsax.user5,
       ),
       _NavItem(
         label: 'Appointments',

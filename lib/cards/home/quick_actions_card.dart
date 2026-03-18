@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../theme/app_theme.dart';
 import '../../routes/app_router.dart';
 
@@ -58,7 +57,7 @@ class MRQuickActionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       (
-        icon: FontAwesomeIcons.userGroup,
+        icon: Iconsax.user_octagon5,
         label: 'Team',
         onTap: () => context.push(AppRouter.myTeam),
       ),
