@@ -138,6 +138,40 @@ class MonthPlanServices {
     }
   }
 
+  Future<void> deleteMonthlyPlan(int planId) async {
+    try {
+      final response = await _dio.delete(ApiUrl.monthlyPlanDeleteById(planId));
+      final data = response.data;
+      if (data is! Map<String, dynamic> && data is! String) {
+        throw Exception('Invalid delete response from server.');
+      }
+      // Optionally check detail in response
+      return;
+    } on DioException catch (error) {
+      throw Exception(_extractErrorMessage(error));
+    } catch (_) {
+      throw Exception('Unable to delete monthly plan right now.');
+    }
+  }
+
+  Future<MonthPlanEntry> updateMonthlyPlan(int planId, Map<String, dynamic> payload) async {
+    try {
+      final response = await _dio.put(
+        ApiUrl.monthlyPlanUpdateById(planId),
+        data: payload,
+      );
+      final data = response.data;
+      if (data is! Map<String, dynamic>) {
+        throw Exception('Invalid update response from server.');
+      }
+      return MonthPlanEntry.fromMrDayPlanJson(data);
+    } on DioException catch (error) {
+      throw Exception(_extractErrorMessage(error));
+    } catch (_) {
+      throw Exception('Unable to update monthly plan right now.');
+    }
+  }
+
   String _extractErrorMessage(DioException error) {
     final responseData = error.response?.data;
     if (responseData is Map<String, dynamic>) {

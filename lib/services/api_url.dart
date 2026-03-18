@@ -1,7 +1,7 @@
 class ApiUrl {
     
   // Default base URL for physical devices on the same LAN as the backend.
-  static const String _defaultBaseUrl = 'http://192.168.1.44:8000';
+  static const String _defaultBaseUrl = 'http://10.0.2.2:8000';
 
   // Override at runtime if needed:
   // flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
@@ -48,6 +48,9 @@ class ApiUrl {
     final d = date.day.toString().padLeft(2, '0');
     return '/monthly-plan/get-by-mr/$mrId/date/$y-$m-$d';
   }
+
+  static String monthlyPlanUpdateById(int planId) => '/monthly-plan/update/$planId';
+  static String monthlyPlanDeleteById(int planId) => '/monthly-plan/delete/$planId';
 
   // ASM Monthly Target Endpoints (GET)
   static const String monthlyTargetAsmGetAll = '/monthly-target/asm/get-all';

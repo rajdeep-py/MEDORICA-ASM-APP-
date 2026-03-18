@@ -48,7 +48,16 @@ class PlanCard extends ConsumerWidget {
                         ),
                       );
                       if (ok == true) {
-                        ref.read(monthPlanNotifierProvider.notifier).removeEntry(entry.id);
+                        try {
+                          await ref.read(monthPlanNotifierProvider.notifier).deletePlanById(entry.planId?.toString() ?? '');
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Plan deleted successfully')));
+                          }
+                        } catch (error) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString().replaceFirst('Exception: ', ''))));
+                          }
+                        }
                       }
                     },
                   ),

@@ -126,6 +126,38 @@ class MonthPlanNotifier extends StateNotifier<MonthPlanState> {
     state = state.copyWith(entries: updated, error: null);
   }
 
+  Future<void> deletePlanById(String id) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final planId = int.tryParse(id);
+      if (planId == null) {
+        throw Exception('Invalid plan id.');
+      }
+      await _services.deleteMonthlyPlan(planId);
+      removeEntry(id);
+      state = state.copyWith(isLoading: false, error: null);
+    } catch (error) {
+      state = state.copyWith(isLoading: false, error: _readErrorMessage(error));
+      rethrow;
+    }
+  }
+
+  Future<void> updatePlanById(String id, Map<String, dynamic> payload) async {
+    state = state.copyWith(isSubmitting: true, error: null);
+    try {
+      final planId = int.tryParse(id);
+      if (planId == null) {
+        throw Exception('Invalid plan id.');
+      }
+      final updated = await _services.updateMonthlyPlan(planId, payload);
+      updateEntry(updated);
+      state = state.copyWith(isSubmitting: false, error: null);
+    } catch (error) {
+      state = state.copyWith(isSubmitting: false, error: _readErrorMessage(error));
+      rethrow;
+    }
+  }
+
   List<MonthPlanEntry> entriesForMember(String memberId) {
     return state.entries.where((e) => e.memberId == memberId).toList();
   }

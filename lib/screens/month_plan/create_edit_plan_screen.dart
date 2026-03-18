@@ -289,12 +289,28 @@ class _CreateEditPlanScreenState extends ConsumerState<CreateEditPlanScreen> {
         memberId: selectedMemberId,
         steps: List.from(_steps),
       );
-      notifier.updateEntry(updated);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Plan updated locally')));
-        context.pop();
+      // Prepare payload for update
+      final payload = {
+        'status': existing.status,
+        'member_day_plans': [
+          {
+            'mr_id': updated.memberId,
+            'mr_name': existing.memberName,
+            'activities': updated.steps.map((s) => s.toActivityJson()).toList(),
+          }
+        ],
+      };
+      try {
+        await notifier.updatePlanById(existing.planId?.toString() ?? '', payload);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Plan updated successfully')));
+          context.pop();
+        }
+      } catch (error) {
+        if (mounted) {
+          final message = error.toString().replaceFirst('Exception: ', '');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+        }
       }
     } else {
       final members = _memberOptionsFromTeams(ref.read(allTeamsProvider));
