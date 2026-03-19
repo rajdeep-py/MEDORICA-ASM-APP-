@@ -57,7 +57,7 @@ class MRQuickActionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       (
-        icon: Iconsax.user_octagon5,
+        icon: Iconsax.user_octagon,
         label: 'Team',
         onTap: () => context.push(AppRouter.myTeam),
       ),
@@ -92,9 +92,9 @@ class MRQuickActionsCard extends StatelessWidget {
         onTap: () => context.push(AppRouter.chemistShops),
       ),
       (
-        icon: Iconsax.user,
-        label: 'Profile',
-        onTap: () => context.push(AppRouter.profile),
+        icon: Iconsax.calendar,
+        label: 'Attendance',
+        onTap: () => context.push(AppRouter.myAttendance),
       ),
     ];
 

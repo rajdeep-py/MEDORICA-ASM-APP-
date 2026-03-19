@@ -3,6 +3,15 @@ import '../models/attendance.dart';
 import '../services/attendance/attendance_services.dart';
 
 class AttendanceNotifier extends StateNotifier<Attendance?> {
+    Future<List<Attendance>> fetchMonthAttendance(DateTime month) async {
+      if (_asmId == null || _asmId!.isEmpty) {
+        return [];
+      }
+      final allRecords = await _attendanceServices.fetchAttendanceByAsmId(_asmId!);
+      return allRecords.where((record) =>
+        record.date.year == month.year && record.date.month == month.month
+      ).toList();
+    }
   AttendanceNotifier(this._attendanceServices) : super(null);
 
   final AttendanceServices _attendanceServices;

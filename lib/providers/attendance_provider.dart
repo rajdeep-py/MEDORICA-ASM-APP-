@@ -1,3 +1,4 @@
+
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,10 @@ import 'auth_provider.dart';
 
 final attendanceServicesProvider = Provider<AttendanceServices>((ref) {
   return AttendanceServices();
+});
+final monthAttendanceProvider = FutureProvider.family<List<Attendance>, DateTime>((ref, month) async {
+  final notifier = ref.read(attendanceNotifierProvider.notifier);
+  return notifier.fetchMonthAttendance(month);
 });
 
 final attendanceNotifierProvider =

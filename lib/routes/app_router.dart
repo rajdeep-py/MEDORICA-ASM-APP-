@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../screens/attendance/my_attendance_screen.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/gift/gift_screen.dart';
@@ -55,6 +56,7 @@ class AppRouter {
   static const String editOrder = '/edit-order';
   static const String notifications = '/notifications';
   static const String profile = '/profile';
+  static const String myAttendance = '/my-attendance';
   static const String updateProfile = '/profile/update';
   static const String aboutUs = '/about-us';
   static const String doctors = '/asm/doctor';
@@ -72,6 +74,10 @@ class AppRouter {
     return GoRouter(
       initialLocation: AppRouter.splash,
       routes: [
+        GoRoute(
+          path: myAttendance,
+          builder: (context, state) => const MyAttendanceScreen(),
+        ),
         GoRoute(
           path: AppRouter.gifts,
           builder: (context, state) => const GiftScreen(),

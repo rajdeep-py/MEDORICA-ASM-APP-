@@ -67,8 +67,8 @@ class _MRBottomNavBarState extends State<MRBottomNavBar> {
         filledIcon: Iconsax.home5
       ),
       _NavItem(label: 'My Team', 
-      icon: Iconsax.user_octagon5, 
-      filledIcon: Iconsax.user_octagon5
+      icon: Iconsax.user_octagon, 
+      filledIcon: Iconsax.user_octagon
       ),
       
       _NavItem(
@@ -88,11 +88,11 @@ class _MRBottomNavBarState extends State<MRBottomNavBar> {
       ),
       _NavItem(
         label: 'Doctors',
-        icon: Iconsax.user5,
-        filledIcon: Iconsax.user5,
+        icon: Iconsax.user,
+        filledIcon: Iconsax.user,
       ),
       _NavItem(
-        label: 'Appointments',
+        label: 'DCR',
         icon: Iconsax.calendar,
         filledIcon: Iconsax.calendar_1,
       ),

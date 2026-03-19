@@ -37,7 +37,8 @@ class AttendanceServices {
 
   final Dio _dio;
   final DateFormat _dateOnlyFormatter = DateFormat('yyyy-MM-dd');
-
+  
+  // Fetch all attendance records for a given ASM ID
   Future<List<Attendance>> fetchAttendanceByAsmId(String asmId) async {
     try {
       final response = await _dio.get(ApiUrl.asmAttendanceGetByAsmId(asmId));
@@ -59,7 +60,8 @@ class AttendanceServices {
       throw Exception('Unable to load attendance right now.');
     }
   }
-
+  
+  // Fetch today's attendance record for a given ASM ID
   Future<Attendance?> fetchTodaysAttendance({required String asmId}) async {
     final records = await fetchAttendanceByAsmId(asmId);
     final today = DateUtils.dateOnly(DateTime.now());
@@ -73,6 +75,7 @@ class AttendanceServices {
     return null;
   }
 
+  // Post new attendance record
   Future<Attendance> postAttendance({
     required String asmId,
     required DateTime attendanceDate,
@@ -121,6 +124,7 @@ class AttendanceServices {
     }
   }
 
+  // Update existing attendance record
   Future<Attendance> updateAttendance({
     required String asmId,
     required int attendanceId,
