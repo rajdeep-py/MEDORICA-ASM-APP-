@@ -10,6 +10,7 @@ import '../../cards/appointment/appointment_card.dart';
 import '../../cards/appointment/appointment_filter_options_card.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/app_bar.dart';
+import '../../widgets/loader.dart';
 
 class MyAppointmentScreen extends ConsumerStatefulWidget {
   const MyAppointmentScreen({super.key});
@@ -25,10 +26,7 @@ class _MyAppointmentScreenState extends ConsumerState<MyAppointmentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appointments = ref.watch(appointmentProvider);
-
-    // Apply filters
-    final filteredAppointments = _filterAppointments(appointments);
+    final appointmentsAsync = ref.watch(appointmentProvider);
 
     return PopScope(
       canPop: false,
@@ -69,19 +67,34 @@ class _MyAppointmentScreenState extends ConsumerState<MyAppointmentScreen> {
 
             // Appointments List
             Expanded(
-              child: filteredAppointments.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.lg,
-                        vertical: AppSpacing.sm,
-                      ),
-                      itemCount: filteredAppointments.length,
-                      itemBuilder: (context, index) {
-                        final appointment = filteredAppointments[index];
-                        return AppointmentCard(appointment: appointment);
-                      },
-                    ),
+              child: appointmentsAsync.when(
+                data: (appointments) {
+                  final filteredAppointments = _filterAppointments(appointments);
+                  return filteredAppointments.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.lg,
+                            vertical: AppSpacing.sm,
+                          ),
+                          itemCount: filteredAppointments.length,
+                          itemBuilder: (context, index) {
+                            final appointment = filteredAppointments[index];
+                            return AppointmentCard(appointment: appointment);
+                          },
+                        );
+                },
+                loading: () => const Center(
+                  child: Loader(
+                    text: 'Loading appointments...',
+                    logoSize: 36.0,
+                    backgroundColor: Colors.transparent,
+                  ),
+                ),
+                error: (err, _) => Center(
+                  child: Text('Error loading appointments'),
+                ),
+              ),
             ),
           ],
         ),

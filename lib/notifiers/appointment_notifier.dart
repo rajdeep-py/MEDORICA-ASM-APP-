@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/legacy.dart';
 import '../models/appointment.dart';
 import '../services/appointment/appointment_services.dart';
 
-class AppointmentNotifier extends StateNotifier<List<Appointment>> {
-  AppointmentNotifier(this._appointmentServices) : super(const []);
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class AppointmentNotifier extends StateNotifier<AsyncValue<List<Appointment>>> {
+  AppointmentNotifier(this._appointmentServices) : super(const AsyncValue.data([]));
 
   final AppointmentServices _appointmentServices;
   String? _activeAsmId;
@@ -13,11 +15,11 @@ class AppointmentNotifier extends StateNotifier<List<Appointment>> {
     final nextAsmId = asmId?.trim();
     if (nextAsmId == null || nextAsmId.isEmpty) {
       _activeAsmId = null;
-      state = const [];
+      state = const AsyncValue.data([]);
       return;
     }
 
-    if (_activeAsmId == nextAsmId && state.isNotEmpty) {
+    if (_activeAsmId == nextAsmId && state.maybeWhen(data: (d) => d.isNotEmpty, orElse: () => false)) {
       return;
     }
 
@@ -28,14 +30,19 @@ class AppointmentNotifier extends StateNotifier<List<Appointment>> {
   Future<void> loadAppointmentsByAsmId(String asmId) async {
     final trimmedAsmId = asmId.trim();
     if (trimmedAsmId.isEmpty) {
-      state = const [];
+      state = const AsyncValue.data([]);
       return;
     }
 
-    final appointments = await _appointmentServices.fetchAppointmentsByAsmId(
-      trimmedAsmId,
-    );
-    state = appointments;
+    state = const AsyncValue.loading();
+    try {
+      final appointments = await _appointmentServices.fetchAppointmentsByAsmId(
+        trimmedAsmId,
+      );
+      state = AsyncValue.data(appointments);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 
   Future<void> addAppointment({
@@ -43,12 +50,18 @@ class AppointmentNotifier extends StateNotifier<List<Appointment>> {
     required Appointment appointment,
     String? completionPhotoProofPath,
   }) async {
-    final created = await _appointmentServices.createAppointment(
-      asmId: asmId,
-      appointment: appointment,
-      completionPhotoProofPath: completionPhotoProofPath,
-    );
-    state = [...state, created];
+    state = const AsyncValue.loading();
+    try {
+      final created = await _appointmentServices.createAppointment(
+        asmId: asmId,
+        appointment: appointment,
+        completionPhotoProofPath: completionPhotoProofPath,
+      );
+      final current = state.maybeWhen(data: (d) => d, orElse: () => <Appointment>[]);
+      state = AsyncValue.data([...current, created]);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 
   Future<void> updateAppointment({
@@ -56,19 +69,23 @@ class AppointmentNotifier extends StateNotifier<List<Appointment>> {
     required Appointment appointment,
     String? completionPhotoProofPath,
   }) async {
-    final updated = await _appointmentServices.updateAppointmentById(
-      appointmentId: appointment.id,
-      appointment: appointment,
-      completionPhotoProofPath: completionPhotoProofPath,
-    );
-
-    state = [
-      for (final item in state)
-        if (item.id == appointment.id) updated else item,
-    ];
-
-    if (!state.any((item) => item.id == updated.id)) {
-      await loadAppointmentsByAsmId(asmId);
+    state = const AsyncValue.loading();
+    try {
+      final updated = await _appointmentServices.updateAppointmentById(
+        appointmentId: appointment.id,
+        appointment: appointment,
+        completionPhotoProofPath: completionPhotoProofPath,
+      );
+      final current = state.maybeWhen(data: (d) => d, orElse: () => <Appointment>[]);
+      state = AsyncValue.data([
+        for (final item in current)
+          if (item.id == appointment.id) updated else item,
+      ]);
+      if (!current.any((item) => item.id == updated.id)) {
+        await loadAppointmentsByAsmId(asmId);
+      }
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 
@@ -76,13 +93,19 @@ class AppointmentNotifier extends StateNotifier<List<Appointment>> {
     required String asmId,
     required String appointmentId,
   }) async {
-    await _appointmentServices.deleteAppointmentById(appointmentId);
-    state = state
-        .where((appointment) => appointment.id != appointmentId)
-        .toList();
-
-    if (state.isEmpty) {
-      await loadAppointmentsByAsmId(asmId);
+    state = const AsyncValue.loading();
+    try {
+      await _appointmentServices.deleteAppointmentById(appointmentId);
+      final current = state.maybeWhen(data: (d) => d, orElse: () => <Appointment>[]);
+      final updated = current
+          .where((appointment) => appointment.id != appointmentId)
+          .toList();
+      state = AsyncValue.data(updated);
+      if (updated.isEmpty) {
+        await loadAppointmentsByAsmId(asmId);
+      }
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 }
