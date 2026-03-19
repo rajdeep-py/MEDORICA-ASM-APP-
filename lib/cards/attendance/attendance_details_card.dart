@@ -1,3 +1,4 @@
+import 'package:iconsax/iconsax.dart';
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../models/attendance.dart';
@@ -15,26 +16,76 @@ class AttendanceDetailsCard extends StatelessWidget {
     final checkOut = attendance?.checkOut;
     final status = attendance?.status ?? (isPresent ? 'Present' : 'Absent');
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppBorderRadius.lg)),
-      elevation: AppElevation.md,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppBorderRadius.lg),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withAlpha(20),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Attendance Details',
-              style: AppTypography.h3.copyWith(color: AppColors.primary),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    isPresent ? Iconsax.tick_circle : Iconsax.close_circle,
+                    color: isPresent ? AppColors.success : AppColors.error,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Text(
+                  'Attendance Details',
+                  style: AppTypography.h2.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text('Date: ${_formatDate(date)}', style: AppTypography.body),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Icon(Iconsax.calendar, color: AppColors.primary, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Text('Date: ${_formatDate(date)}', style: AppTypography.body),
+              ],
+            ),
             const SizedBox(height: AppSpacing.sm),
-            Text('Status: $status', style: AppTypography.body),
+            Row(
+              children: [
+                Icon(Iconsax.status, color: AppColors.primary, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Text('Status: $status', style: AppTypography.body),
+              ],
+            ),
             const SizedBox(height: AppSpacing.sm),
-            Text('Check In: ${_formatTime(checkIn)}', style: AppTypography.body),
+            Row(
+              children: [
+                Icon(Iconsax.login, color: AppColors.success, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Text('Check In: ${_formatTime(checkIn)}', style: AppTypography.body),
+              ],
+            ),
             const SizedBox(height: AppSpacing.sm),
-            Text('Check Out: ${_formatTime(checkOut)}', style: AppTypography.body),
+            Row(
+              children: [
+                Icon(Iconsax.logout, color: AppColors.error, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Text('Check Out: ${_formatTime(checkOut)}', style: AppTypography.body),
+              ],
+            ),
           ],
         ),
       ),
